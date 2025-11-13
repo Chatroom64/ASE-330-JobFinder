@@ -7,9 +7,9 @@ document.addEventListener('DOMContentLoaded', function() {
 function initializeForm() {
     // Initialize 4 default rows
     const container = document.getElementById('jobCriteriaContainer');
-    for (let i = 0; i < 4; i++) {
+    //for (let i = 0; i < 4; i++) {
         addJobCriteriaRow();
-    }
+    //}
 
     // Form submission handler
     const form = document.getElementById('jobSearchForm');
@@ -290,6 +290,7 @@ function loadMoreJobs() {
     }, 500);
 }
 
+
 // Handle form submission
 function handleFormSubmit(event) {
     event.preventDefault();
@@ -386,12 +387,15 @@ function switchAuthTab(tab) {
     const signupTab = document.getElementById('signupTab');
     const loginFormContainer = document.getElementById('loginFormContainer');
     const signupFormContainer = document.getElementById('signupFormContainer');
-    
+    signupFormContainer.style.maxHeight= "400px";
+    signupFormContainer.style.overflowY= "scroll";
+
     if (tab === 'login') {
         loginTab.classList.add('active');
         signupTab.classList.remove('active');
         loginFormContainer.classList.remove('hidden');
         signupFormContainer.classList.add('hidden');
+        
     } else {
         signupTab.classList.add('active');
         loginTab.classList.remove('active');
