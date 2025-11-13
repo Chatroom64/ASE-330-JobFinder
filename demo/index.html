@@ -33,7 +33,7 @@
         <div class="form-container">
             <h2 class="page-title">Job Search Criteria</h2>
             
-            <form class="job-search-form" id="jobSearchForm">
+            <form class="job-search-form" id="jobSearchForm" method="POST" enctype="multipart/form-data">
                 <!-- Job Title / Technology and Years of Experience Section -->
                 <div class="form-section">
                     <label class="section-label">Job Title / Technology & Years of Experience</label>
@@ -56,14 +56,40 @@
                     ></textarea>
                 </div>
 
+                <!-- FILE UPLOAD -->
+                 <div class="form-section">
+                     <label class="section-label">Upload Resume</label>
+                     <input type="file" id="fileInput"></input>
+                 </div>
+
                 <!-- Action Buttons -->
                 <div class="form-actions">
                     <button type="button" class="cancel-btn" onclick="cancelForm()">Cancel</button>
-                    <button type="submit" class="submit-btn">Submit</button>
+                    <button type="submit" class="submit-btn" id="job-search-submit">Submit</button>
                 </div>
             </form>
         </div>
     </div>
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <script>
+        const button = document.getElementById("job-search-submit");
+        button.addEventListener('submit', async (e) => {
+            e.preventDefault()
+            console.log('File upload attempt');
+            try {
+                const formData = new FormData();
+                formData.append('myFile', fileInput.files[0]); // 'myFile' matches the name attribute in the HTML input
+                const response = await axios.post('http://127.0.0.1:3000/api/upload/resume', formData, {
+                    headers: {
+                        'Content-Type': 'multipart/form-data'
+                    }
+                });
+                console.log('File uploaded successfully:', response.data);
+            } catch (error) {
+                console.error('Error uploading file:', error);
+            }
+        });
+    </script>
 
     <!-- Job Results Page -->
     <div class="job-results-page hidden" id="jobResultsPage">
