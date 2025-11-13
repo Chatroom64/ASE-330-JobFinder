@@ -12,8 +12,10 @@ function initializeForm() {
     }
 
     // Form submission handler
-    const form = document.getElementById('jobSearchForm');
-    form.addEventListener('submit', handleFormSubmit);
+    //COMMENTED THIS OUT because importing axios into this file just does not work,
+    //  so handling form submission has to happen in the file where the form is.
+    // const form = document.getElementById('jobSearchForm');
+    // form.addEventListener('submit', handleFormSubmit);
 }
 
 // Navigate to main page
@@ -42,9 +44,8 @@ function showJobSearchForm() {
     
     mainPage.classList.add('hidden');
     jobSearchPage.classList.remove('hidden');
-    
     // Scroll to top
-    window.scrollTo(0, 0);
+    window.scrollTo(0, 0); 
 }
 
 // Cancel form and return to main page
