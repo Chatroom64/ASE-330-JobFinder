@@ -56,12 +56,40 @@
                     ></textarea>
                 </div>
 
+                <!-- FILE UPLOAD -->
+                <div class="form-section">
+                    <label class="section-label">Upload Resume</label>
+                    <input type="file" id="fileInput" accept=".pdf,.doc,.docx" class="file-input">
+                    <p class="file-input-hint">Supported formats: PDF, DOC, DOCX</p>
+                </div>
+
                 <!-- Action Buttons -->
                 <div class="form-actions">
                     <button type="button" class="cancel-btn" onclick="cancelForm()">Cancel</button>
                     <button type="submit" class="submit-btn">Submit</button>
                 </div>
             </form>
+        </div>
+    </div>
+
+    <!-- Resume Analysis Results Page -->
+    <div class="resume-analysis-page hidden" id="resumeAnalysisPage">
+        <div class="analysis-container">
+            <h2 class="analysis-title">Resume Analysis Results</h2>
+            
+            <div id="loadingIndicator" class="loading-indicator hidden">
+                <div class="spinner"></div>
+                <p>Analyzing your resume...</p>
+            </div>
+
+            <div id="analysisResults" class="analysis-results hidden">
+                <!-- Analysis results will be displayed here -->
+            </div>
+
+            <div class="analysis-actions">
+                <button type="button" class="back-btn" onclick="goBackToForm()">Back to Form</button>
+                <button type="button" class="search-jobs-btn" onclick="searchJobsFromAnalysis()">Search Matching Jobs</button>
+            </div>
         </div>
     </div>
 
@@ -197,6 +225,7 @@
         </div>
     </div>
 
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
     <script src="script.js"></script>
 </body>
 </html>
