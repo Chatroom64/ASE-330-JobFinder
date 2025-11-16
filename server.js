@@ -1,6 +1,6 @@
 import express from "express";
 import dotenv from "dotenv";
-import multer from 'multer'
+import multer from 'multer';
 import { GoogleGenAI } from "@google/genai";
 import axios from "axios";
 
@@ -18,11 +18,11 @@ app.post('/api/upload/resume', upload.single('myFile'), async (req, res) => {
 
     console.log('File contents:', fileContents);
     // Send to another API
-    const response = await axios.post('/api/Gemini/LLM', {
+    const response = await axios.get('http://127.0.0.1:3000/api/Gemini/LLM', {
       content: fileContents
     });
     res.send(`File sent! Remote API responded: ${response.data}`);
-  }catch{
+  }catch (err){
     console.error(err);
     res.status(500).send('Failed to send file to API');
   }
