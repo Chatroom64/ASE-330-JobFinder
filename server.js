@@ -10,6 +10,8 @@ const upload = multer({ storage: multer.memoryStorage() }); //Keep files in memo
 // The client gets the API key from the environment variable `GEMINI_API_KEY`.
 const ai = new GoogleGenAI({});
 
+app.use(express.json());
+
 app.post('/api/upload/resume', upload.single('myFile'), async (req, res) => {
   try{
     console.log('/upload/resume API called');
@@ -18,8 +20,8 @@ app.post('/api/upload/resume', upload.single('myFile'), async (req, res) => {
 
     console.log('File contents:', fileContents);
     // Send to another API
-    const response = await axios.get('http://127.0.0.1:3000/api/Gemini/LLM', {
-      content: fileContents
+    const response = await axios.post('http://127.0.0.1:3000/api/Gemini/LLM', {
+      resume: fileContents
     });
     res.send(`File sent! Remote API responded: ${response.data}`);
   }catch (err){
@@ -28,16 +30,36 @@ app.post('/api/upload/resume', upload.single('myFile'), async (req, res) => {
   }
 });
 
-app.get("/api/Gemini/LLM", async (req, res) => {
+app.post("/api/Gemini/LLM", async (req, res) => {
   try {
     console.log('/api/Gemini/LLM Called');
+    const resume = req.body.resume; //Assuming this is a string
     const response = await ai.models.generateContent({
       model: "gemini-2.5-flash",
-      contents: "Explain how AI works in a few words",
+      contents: `
+        You are an expert resume parsing and keyword extraction engine. Your task is to analyze the provided raw text from a resume and extract key information specifically for the purpose of matching the candidate to relevant job listings.
+
+        Your output **must be strictly categorized** into the following four sections, and you must use a specific separator (a colon followed by a space, ': ') for section headers and use a comma-space delimiter (', ') for all list items.
+
+        1.  **SKILLS_TECHNOLOGIES**: A comprehensive list of all technical tools, programming languages, software, and significant non-technical skills (e.g., Python, SQL, AWS, Financial Analysis, Project Management).
+        2.  **JOB_TITLES_ROLES**: A list of the most prominent or recent job titles and functional roles (e.g., Senior Data Scientist, Engineering Manager, Solution Architect).
+        3.  **INDUSTRY_DOMAINS**: A list of industry-specific keywords and professional domains (e.g., FinTech, E-commerce, Aerospace, Cloud Infrastructure, Regulatory Compliance).
+
+        **[RESUME TEXT]**
+          ${resume}
+
+        **---**
+
+        **REQUIRED OUTPUT FORMAT:**
+
+        SKILLS_TECHNOLOGIES: [List item 1], [List item 2], [List item 3], ...
+        JOB_TITLES_ROLES: [List item 1], [List item 2], [List item 3], ...
+        INDUSTRY_DOMAINS: [List item 1], [List item 2], [List item 3], ...
+        `,
     });
-  console.log(response.text);
-    const data = await response.json()
-    res.json(data); // Send the API response to the client
+    console.log(response.text);
+    const textResult = response.text;
+    res.json({ result: textResult }); // Send the API response to the client
   } catch (err) {
     res.status(500).json({ error: "Something went wrong" });
   }
