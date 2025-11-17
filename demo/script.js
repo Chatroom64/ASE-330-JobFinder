@@ -19,10 +19,8 @@ function initializeForm() {
     //}
 
     // Form submission handler
-    //COMMENTED THIS OUT because importing axios into this file just does not work,
-    //  so handling form submission has to happen in the file where the form is.
-    // const form = document.getElementById('jobSearchForm');
-    // form.addEventListener('submit', handleFormSubmit);
+    const form = document.getElementById('jobSearchForm');
+    form.addEventListener('submit', handleFormSubmit);
 }
 
 // Navigate to main page

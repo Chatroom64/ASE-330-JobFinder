@@ -33,7 +33,7 @@
         <div class="form-container" >
             <h2 class="page-title">Job Search Criteria</h2>
             
-            <form class="job-search-form" id="jobSearchForm" method="POST" enctype="multipart/form-data">
+            <form class="job-search-form" id="jobSearchForm" method="POST" enctype="multipart/form-data" name="myFile">
                 <!-- Job Title / Technology and Years of Experience Section -->
                 <div class="form-section">
                     <label class="section-label">Job Title / Technology & Years of Experience</label>
@@ -72,12 +72,13 @@
     </div>
     <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
     <script>
-        const button = document.getElementById("job-search-submit");
+        const button = document.getElementById("jobSearchForm");
         button.addEventListener('submit', async (e) => {
             e.preventDefault()
             console.log('File upload attempt');
             try {
                 const formData = new FormData();
+                const fileInput = document.getElementById("fileInput");
                 formData.append('myFile', fileInput.files[0]); // 'myFile' matches the name attribute in the HTML input
                 const response = await axios.post('http://127.0.0.1:3000/api/upload/resume', formData, {
                     headers: {
