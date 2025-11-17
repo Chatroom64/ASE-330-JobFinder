@@ -2,6 +2,13 @@
 document.addEventListener('DOMContentLoaded', function() {
     initializeForm();
 });
+// Affects what is displayed on sign-in
+    var isSignedIn;
+    if (!isSignedIn) isSignedIn = false;
+    console.log(isSignedIn);
+    heroSection = document.getElementById('hero-section');
+    
+//
 
 // Initialize form with 4 default rows (each row has Job Title and Years of Experience)
 function initializeForm() {
@@ -412,13 +419,13 @@ function handleLogin(event) {
     const email = document.getElementById('loginEmail').value;
     const password = document.getElementById('loginPassword').value;
     const rememberMe = document.getElementById('rememberMe').checked;
-    
+    isSignedIn = true;
     // In a real app, this would send to a server
     console.log('Login attempt:', { email, rememberMe });
     
     // Close auth page immediately
     closeAuthPage();
-    
+    heroSection.style.display = "block";
     // You could update the UI to show the user is logged in
     // For example, change "Account" button to show user name
     // For demo purposes, we'll just log it
@@ -452,6 +459,7 @@ function handleSignup(event) {
     // For demo purposes, just log the success
     console.log(`Account created: ${name} (${email})`);
 }
+
 
 // Close auth page when clicking outside
 document.addEventListener('DOMContentLoaded', function() {
