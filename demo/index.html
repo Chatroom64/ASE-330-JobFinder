@@ -1,10 +1,10 @@
 <!DOCTYPE html>
-<html lang="ko">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ResumeMatch - Job Search</title>
-    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="styles.css" type="text/css">
 </head>
 <body>
     <!-- Navigation Bar -->
@@ -24,16 +24,16 @@
         <div class="hero-section">
             <h1 class="hero-title">Find Your Perfect Job Match</h1>
             <p class="hero-subtitle">Upload your resume and discover jobs tailored to your skills and experience</p>
-            <button class="search-btn" onclick="showJobSearchForm()">Search by Resume</button>
+            <button class="search-btn" id="search-by-resume" onclick="showJobSearchForm()">Search by Resume</button>
         </div>
     </main>
 
     <!-- Job Search Form Page -->
     <div class="job-search-page hidden" id="jobSearchPage">
-        <div class="form-container">
+        <div class="form-container" >
             <h2 class="page-title">Job Search Criteria</h2>
             
-            <form class="job-search-form" id="jobSearchForm">
+            <form class="job-search-form" id="jobSearchForm" method="POST" enctype="multipart/form-data" name="myFile">
                 <!-- Job Title / Technology and Years of Experience Section -->
                 <div class="form-section">
                     <label class="section-label">Job Title / Technology & Years of Experience</label>
@@ -57,20 +57,40 @@
                 </div>
 
                 <!-- FILE UPLOAD -->
-                <div class="form-section">
-                    <label class="section-label">Upload Resume</label>
-                    <input type="file" id="fileInput" accept=".pdf,.doc,.docx" class="file-input">
-                    <p class="file-input-hint">Supported formats: PDF, DOC, DOCX</p>
-                </div>
+                 <div class="form-section">
+                     <label class="section-label">Upload Resume</label>
+                     <input type="file" id="fileInput" accept=".txt"></input>
+                 </div>
 
                 <!-- Action Buttons -->
                 <div class="form-actions">
                     <button type="button" class="cancel-btn" onclick="cancelForm()">Cancel</button>
-                    <button type="submit" class="submit-btn">Submit</button>
+                    <button type="submit" class="submit-btn" id="job-search-submit">Submit</button>
                 </div>
             </form>
         </div>
     </div>
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <script>
+        const button = document.getElementById("jobSearchForm");
+        button.addEventListener('submit', async (e) => {
+            e.preventDefault()
+            console.log('File upload attempt');
+            try {
+                const formData = new FormData();
+                const fileInput = document.getElementById("fileInput");
+                formData.append('myFile', fileInput.files[0]); // 'myFile' matches the name attribute in the HTML input
+                const response = await axios.post('http://127.0.0.1:3000/api/upload/resume', formData, {
+                    headers: {
+                        'Content-Type': 'multipart/form-data'
+                    }
+                });
+                console.log('File uploaded successfully:', response.data);
+            } catch (error) {
+                console.error('Error uploading file:', error);
+            }
+        });
+    </script>
 
     <!-- Resume Analysis Results Page -->
     <div class="resume-analysis-page hidden" id="resumeAnalysisPage">
@@ -95,10 +115,11 @@
 
     <!-- Job Results Page -->
     <div class="job-results-page hidden" id="jobResultsPage">
+        
         <div class="results-container">
             <h2 class="results-title">Job Search Results</h2>
             <p class="results-subtitle">Found <span id="resultsCount">0</span> matching jobs</p>
-            
+
             <div class="job-cards-container" id="jobCardsContainer">
                 <!-- Job cards will be dynamically added here -->
             </div>
@@ -107,6 +128,7 @@
                 <button type="button" class="load-more-btn" id="loadMoreBtn" onclick="loadMoreJobs()">
                     Load More
                 </button>
+                <button type="button" class="load-more-btn" id="home-btn" onclick="goToMainPage()">Back to Home</button>
             </div>
         </div>
     </div>
@@ -120,7 +142,7 @@
             </div>
 
             <!-- Login Form -->
-            <div class="auth-form-container" id="loginFormContainer">
+            <div class="auth-form-container" id="loginFormContainer" >
                 <h2 class="auth-title">Welcome Back</h2>
                 <p class="auth-subtitle">Sign in to your account</p>
                 
