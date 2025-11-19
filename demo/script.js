@@ -9,7 +9,7 @@ function initializeForm() {
     const container = document.getElementById('jobCriteriaContainer');
     //for (let i = 0; i < 4; i++) {
         addJobCriteriaRow();
-    }
+    //}
 }
 
 // Navigate to main page
@@ -508,7 +508,7 @@ function displayAnalysisResults(data) {
     
     // Parse the analysis data (assuming it comes from Gemini API)
     // The structure may vary based on your API response
-    const analysis = data.analysis || data;
+    const analysis = data.remoteResponse;
     
     let html = '';
     
