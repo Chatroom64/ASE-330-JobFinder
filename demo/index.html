@@ -12,8 +12,8 @@
         <div class="nav-container">
             <div class="logo" onclick="goToMainPage()" style="cursor: pointer;">JobFinder</div>
             <div class="nav-links">
-                <a href="#" class="nav-link">About</a>
-                <a href="#" class="nav-link">Contact</a>
+                <a href="about.html" class="nav-link">About</a>
+                <a href="about.html" class="nav-link">Contact</a>
             </div>
             <button class="account-btn" onclick="showLoginPage()">Account</button>
         </div>
@@ -25,6 +25,15 @@
             <h1 class="hero-title">Find Your Perfect Job Match</h1>
             <p class="hero-subtitle">Upload your resume and discover jobs tailored to your skills and experience</p>
             <button class="search-btn" id="search-by-resume" onclick="showJobSearchForm()">Search by Resume</button>
+        </div>
+    </main>
+
+    <!-- Main Page when not signed in -->
+    <main class="main-page-signed-out" id="mainPageSignedOut">
+        <div class="hero-section">
+            <h1 class="hero-title">Sign In To Start</h1>
+            <p class="hero-subtitle">Sign in to use the app</p>
+            <button class="search-btn" id="search-by-resume" onclick="showLoginPage()">Sign In</button>
         </div>
     </main>
 

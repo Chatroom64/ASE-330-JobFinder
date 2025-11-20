@@ -1,16 +1,34 @@
+var isSignedIn; // Track if the user is signed in; var is not initialized here so that it doesn't reset when the page reload
 // Initialize form with default fields
 document.addEventListener('DOMContentLoaded', function() {
     initializeForm();
+    isSignedIn = sessionStorage.getItem("isSignedIn") === "true";
+    switchSignIn(); // called immedately so that the page knows which to display on load
 });
 
+const signedInPage = document.getElementById("mainPage");
+const signedOutPage = document.getElementById("mainPageSignedOut");
+// Signin feedback
+function switchSignIn(){ // defined again as its own function so that the page updates on sign in
+    if (isSignedIn) {
+        signedInPage.classList.remove("hidden");
+        signedOutPage.classList.add("hidden");
+    } else {
+        signedInPage.classList.add("hidden");
+        signedOutPage.classList.remove("hidden");
+    }
+}
+
+// End Signin feedback
+
 // Initialize form with 4 default rows (each row has Job Title and Years of Experience)
+// This should be changed to initialize only 1 default row
 function initializeForm() {
     // Initialize 4 default rows
     const container = document.getElementById('jobCriteriaContainer');
     //for (let i = 0; i < 4; i++) {
         addJobCriteriaRow();
     }
-}
 
 // Navigate to main page
 function goToMainPage() {
@@ -195,8 +213,7 @@ function generateMockJobs(count = 10) {
             salary: salary,
             matchReasons: matchReasons
         });
-    }
-    
+    }    
     return jobs;
 }
 
@@ -429,10 +446,10 @@ function handleLogin(event) {
     
     // Close auth page immediately
     closeAuthPage();
-    
-    // You could update the UI to show the user is logged in
-    // For example, change "Account" button to show user name
-    // For demo purposes, we'll just log it
+
+    isSignedIn=true;
+    sessionStorage.setItem("isSignedIn", true);
+    switchSignIn();
     console.log(`User logged in: ${email}`);
 }
 
