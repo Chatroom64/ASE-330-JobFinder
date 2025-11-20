@@ -3,6 +3,7 @@ import dotenv from "dotenv";
 import multer from 'multer';
 import { GoogleGenAI } from "@google/genai";
 import axios from "axios";
+import cors from "cors";
 
 dotenv.config();
 const app = express();
@@ -11,6 +12,7 @@ const upload = multer({ storage: multer.memoryStorage() }); //Keep files in memo
 const ai = new GoogleGenAI({});
 
 app.use(express.json());
+app.use(cors());
 
 app.post('/api/upload/resume', upload.single('myFile'), async (req, res) => {
   try{
@@ -23,7 +25,11 @@ app.post('/api/upload/resume', upload.single('myFile'), async (req, res) => {
     const response = await axios.post('http://127.0.0.1:3000/api/Gemini/LLM', {
       resume: fileContents
     });
-    res.send(`File sent! Remote API responded: ${response.data}`);
+    console.log(response.data); //Debugging
+    res.json({
+      message: "File sent!",
+      remoteResponse: response.data.result
+    });
   }catch (err){
     console.error(err);
     res.status(500).send('Failed to send file to API');
@@ -34,6 +40,9 @@ app.post("/api/Gemini/LLM", async (req, res) => {
   try {
     console.log('/api/Gemini/LLM Called');
     const resume = req.body.resume; //Assuming this is a string
+    if (!resume) {
+      return res.status(400).json({ error: "Missing resume text" });
+    }
     const response = await ai.models.generateContent({
       model: "gemini-2.5-flash",
       contents: `
@@ -59,7 +68,7 @@ app.post("/api/Gemini/LLM", async (req, res) => {
     });
     console.log(response.text);
     const textResult = response.text;
-    res.json({ result: textResult }); // Send the API response to the client
+    res.json({ result: textResult }); // Send the API response to the server
   } catch (err) {
     res.status(500).json({ error: "Something went wrong" });
   }

@@ -68,7 +68,7 @@
                 <!-- FILE UPLOAD -->
                  <div class="form-section">
                      <label class="section-label">Upload Resume</label>
-                     <input type="file" id="fileInput" accept=".txt"></input>
+                     <input class="search-jobs-btn" type="file" id="fileInput" accept=".txt"></input>
                  </div>
 
                 <!-- Action Buttons -->
@@ -81,8 +81,8 @@
     </div>
     <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
     <script>
-        const button = document.getElementById("jobSearchForm");
-        button.addEventListener('submit', async (e) => {
+        const form = document.getElementById("jobSearchForm");
+        form.addEventListener('submit', async (e) => {
             e.preventDefault()
             console.log('File upload attempt');
             try {
@@ -90,9 +90,6 @@
                 const fileInput = document.getElementById("fileInput");
                 formData.append('myFile', fileInput.files[0]); // 'myFile' matches the name attribute in the HTML input
                 const response = await axios.post('http://127.0.0.1:3000/api/upload/resume', formData, {
-                    headers: {
-                        'Content-Type': 'multipart/form-data'
-                    }
                 });
                 console.log('File uploaded successfully:', response.data);
             } catch (error) {
