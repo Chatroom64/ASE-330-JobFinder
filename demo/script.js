@@ -1,31 +1,47 @@
+var isSignedIn; // Track if the user is signed in; var is not initialized here so that it doesn't reset when the page reload
 // Initialize form with default fields
 document.addEventListener('DOMContentLoaded', function() {
     initializeForm();
+    isSignedIn = sessionStorage.getItem("isSignedIn") === "true";
+    switchSignIn(); // called immedately so that the page knows which to display on load
 });
 
+const signedInPage = document.getElementById("mainPage");
+const signedOutPage = document.getElementById("mainPageSignedOut");
+// Signin feedback
+function switchSignIn(){ // defined again as its own function so that the page updates on sign in
+    if (isSignedIn) {
+        signedInPage.classList.remove("hidden");
+        signedOutPage.classList.add("hidden");
+    } else {
+        signedInPage.classList.add("hidden");
+        signedOutPage.classList.remove("hidden");
+    }
+}
+
+// End Signin feedback
+
 // Initialize form with 4 default rows (each row has Job Title and Years of Experience)
+// This should be changed to initialize only 1 default row
 function initializeForm() {
     // Initialize 4 default rows
     const container = document.getElementById('jobCriteriaContainer');
     //for (let i = 0; i < 4; i++) {
         addJobCriteriaRow();
-    //}
-
-    // Form submission handler
-    const form = document.getElementById('jobSearchForm');
-    form.addEventListener('submit', handleFormSubmit);
-}
+    }
 
 // Navigate to main page
 function goToMainPage() {
     const mainPage = document.getElementById('mainPage');
     const jobSearchPage = document.getElementById('jobSearchPage');
     const jobResultsPage = document.getElementById('jobResultsPage');
+    const resumeAnalysisPage = document.getElementById('resumeAnalysisPage');
     const authPage = document.getElementById('authPage');
     
     // Hide all pages
     jobSearchPage.classList.add('hidden');
     jobResultsPage.classList.add('hidden');
+    resumeAnalysisPage.classList.add('hidden');
     authPage.classList.add('hidden');
     
     // Show main page
@@ -197,8 +213,7 @@ function generateMockJobs(count = 10) {
             salary: salary,
             matchReasons: matchReasons
         });
-    }
-    
+    }    
     return jobs;
 }
 
@@ -294,43 +309,58 @@ function loadMoreJobs() {
 function handleFormSubmit(event) {
     event.preventDefault();
     
-    // Collect form data
-    const formData = {
-        criteria: [],
-        keywords: document.getElementById('keywordsInput').value
-    };
+    const fileInput = document.getElementById('fileInput');
+    const file = fileInput.files[0];
+    
+    // Check if file is uploaded
+    if (!file) {
+        alert('Please upload a resume file.');
+        return;
+    }
+    
+    // Show loading indicator and navigate to analysis page
+    showResumeAnalysisPage();
+    showLoadingIndicator();
+    
+    // Prepare form data
+    const formData = new FormData();
+    formData.append('myFile', file);
     
     // Collect job criteria (job title + experience pairs)
     const rows = document.querySelectorAll('#jobCriteriaContainer .input-row');
-    rows.forEach((row, index) => {
+    const criteria = [];
+    rows.forEach((row) => {
         const jobTitleInput = row.querySelector('.job-title-input');
         const experienceInput = row.querySelector('.experience-input');
         
         if (jobTitleInput && (jobTitleInput.value.trim() || experienceInput.value.trim())) {
-            formData.criteria.push({
+            criteria.push({
                 jobTitle: jobTitleInput.value.trim(),
                 experience: experienceInput.value.trim() ? parseFloat(experienceInput.value) : null
             });
         }
     });
     
-    // Log the data (in real app, send to server)
-    console.log('Form submitted with data:', formData);
+    // Add other form data
+    formData.append('criteria', JSON.stringify(criteria));
+    formData.append('keywords', document.getElementById('keywordsInput').value);
     
-    // Generate and display initial jobs
-    currentJobIndex = 0;
-    allJobs = generateMockJobs(10);
-    
-    // Clear previous results
-    document.getElementById('jobCardsContainer').innerHTML = '';
-    document.getElementById('loadMoreBtn').classList.remove('hidden');
-    
-    // Display jobs
-    displayJobs(allJobs);
-    currentJobIndex = allJobs.length;
-    
-    // Navigate to results page
-    showJobResults();
+    // Send to server
+    axios.post('http://127.0.0.1:3000/api/upload/resume', formData, {
+        headers: {
+            'Content-Type': 'multipart/form-data'
+        }
+    })
+    .then(response => {
+        console.log('Resume analyzed successfully:', response.data);
+        hideLoadingIndicator();
+        displayAnalysisResults(response.data);
+    })
+    .catch(error => {
+        console.error('Error analyzing resume:', error);
+        hideLoadingIndicator();
+        showError('Failed to analyze resume. Please try again.');
+    });
 }
 
 // Show job results page
@@ -416,10 +446,10 @@ function handleLogin(event) {
     
     // Close auth page immediately
     closeAuthPage();
-    
-    // You could update the UI to show the user is logged in
-    // For example, change "Account" button to show user name
-    // For demo purposes, we'll just log it
+
+    isSignedIn=true;
+    sessionStorage.setItem("isSignedIn", true);
+    switchSignIn();
     console.log(`User logged in: ${email}`);
 }
 
@@ -451,6 +481,257 @@ function handleSignup(event) {
     console.log(`Account created: ${name} (${email})`);
 }
 
+// Show resume analysis page
+function showResumeAnalysisPage() {
+    const mainPage = document.getElementById('mainPage');
+    const jobSearchPage = document.getElementById('jobSearchPage');
+    const jobResultsPage = document.getElementById('jobResultsPage');
+    const resumeAnalysisPage = document.getElementById('resumeAnalysisPage');
+    const authPage = document.getElementById('authPage');
+    
+    // Hide all pages
+    mainPage.classList.add('hidden');
+    jobSearchPage.classList.add('hidden');
+    jobResultsPage.classList.add('hidden');
+    authPage.classList.add('hidden');
+    
+    // Show analysis page
+    resumeAnalysisPage.classList.remove('hidden');
+    
+    // Scroll to top
+    window.scrollTo(0, 0);
+}
+
+// Show loading indicator
+function showLoadingIndicator() {
+    const loadingIndicator = document.getElementById('loadingIndicator');
+    const analysisResults = document.getElementById('analysisResults');
+    
+    loadingIndicator.classList.remove('hidden');
+    analysisResults.classList.add('hidden');
+}
+
+// Hide loading indicator
+function hideLoadingIndicator() {
+    const loadingIndicator = document.getElementById('loadingIndicator');
+    
+    loadingIndicator.classList.add('hidden');
+}
+
+// Display analysis results
+function displayAnalysisResults(data) {
+    const analysisResults = document.getElementById('analysisResults');
+    analysisResults.classList.remove('hidden');
+    
+    // Parse the analysis data (assuming it comes from Gemini API)
+    // The structure may vary based on your API response
+    const analysis = data.remoteResponse;
+    
+    let html = '';
+    
+    // Personal Information Section
+    if (analysis.personalInfo || analysis.name || analysis.email) {
+        html += `
+            <div class="analysis-section">
+                <div class="section-header">
+                    <span class="section-icon">👤</span>
+                    <h3 class="section-title">Personal Information</h3>
+                </div>
+                <div class="info-grid">
+                    ${analysis.name ? `
+                        <div class="info-item">
+                            <span class="info-label">Name</span>
+                            <span class="info-value">${analysis.name}</span>
+                        </div>
+                    ` : ''}
+                    ${analysis.email ? `
+                        <div class="info-item">
+                            <span class="info-label">Email</span>
+                            <span class="info-value">${analysis.email}</span>
+                        </div>
+                    ` : ''}
+                    ${analysis.phone ? `
+                        <div class="info-item">
+                            <span class="info-label">Phone</span>
+                            <span class="info-value">${analysis.phone}</span>
+                        </div>
+                    ` : ''}
+                    ${analysis.location ? `
+                        <div class="info-item">
+                            <span class="info-label">Location</span>
+                            <span class="info-value">${analysis.location}</span>
+                        </div>
+                    ` : ''}
+                </div>
+            </div>
+        `;
+    }
+    
+    // Skills Section
+    if (analysis.skills && analysis.skills.length > 0) {
+        html += `
+            <div class="analysis-section">
+                <div class="section-header">
+                    <span class="section-icon">💼</span>
+                    <h3 class="section-title">Skills</h3>
+                </div>
+                <div class="skills-list">
+                    ${analysis.skills.map(skill => `
+                        <span class="skill-tag">${skill}</span>
+                    `).join('')}
+                </div>
+            </div>
+        `;
+    }
+    
+    // Experience Section
+    if (analysis.experience && analysis.experience.length > 0) {
+        html += `
+            <div class="analysis-section">
+                <div class="section-header">
+                    <span class="section-icon">💼</span>
+                    <h3 class="section-title">Work Experience</h3>
+                </div>
+                ${analysis.experience.map(exp => `
+                    <div class="experience-item">
+                        <div class="experience-header">
+                            <div>
+                                <div class="experience-title">${exp.title || exp.position || 'N/A'}</div>
+                                <div class="experience-company">${exp.company || exp.employer || 'N/A'}</div>
+                            </div>
+                            ${exp.period || exp.duration ? `
+                                <div class="experience-period">${exp.period || exp.duration}</div>
+                            ` : ''}
+                        </div>
+                        ${exp.description ? `
+                            <div class="experience-description">${exp.description}</div>
+                        ` : ''}
+                        ${exp.achievements && exp.achievements.length > 0 ? `
+                            <ul class="experience-achievements">
+                                ${exp.achievements.map(achievement => `
+                                    <li>${achievement}</li>
+                                `).join('')}
+                            </ul>
+                        ` : ''}
+                    </div>
+                `).join('')}
+            </div>
+        `;
+    }
+    
+    // Education Section
+    if (analysis.education && analysis.education.length > 0) {
+        html += `
+            <div class="analysis-section">
+                <div class="section-header">
+                    <span class="section-icon">🎓</span>
+                    <h3 class="section-title">Education</h3>
+                </div>
+                ${analysis.education.map(edu => `
+                    <div class="experience-item">
+                        <div class="experience-header">
+                            <div>
+                                <div class="experience-title">${edu.degree || edu.qualification || 'N/A'}</div>
+                                <div class="experience-company">${edu.school || edu.institution || 'N/A'}</div>
+                            </div>
+                            ${edu.year || edu.period ? `
+                                <div class="experience-period">${edu.year || edu.period}</div>
+                            ` : ''}
+                        </div>
+                        ${edu.description ? `
+                            <div class="experience-description">${edu.description}</div>
+                        ` : ''}
+                    </div>
+                `).join('')}
+            </div>
+        `;
+    }
+    
+    // Summary Section (if available)
+    if (analysis.summary || analysis.overview) {
+        html += `
+            <div class="analysis-section">
+                <div class="section-header">
+                    <span class="section-icon">📝</span>
+                    <h3 class="section-title">Summary</h3>
+                </div>
+                <div class="section-content">${analysis.summary || analysis.overview}</div>
+            </div>
+        `;
+    }
+    
+    // If no structured data, display raw analysis text
+    if (!html && (analysis.text || analysis.analysisText || typeof analysis === 'string')) {
+        html = `
+            <div class="analysis-section">
+                <div class="section-header">
+                    <span class="section-icon">📄</span>
+                    <h3 class="section-title">Analysis Results</h3>
+                </div>
+                <div class="section-content">${analysis.text || analysis.analysisText || analysis}</div>
+            </div>
+        `;
+    }
+    
+    analysisResults.innerHTML = html;
+    
+    // Store analysis data for later use
+    window.currentAnalysisData = data;
+}
+
+// Show error message
+function showError(message) {
+    const analysisResults = document.getElementById('analysisResults');
+    analysisResults.classList.remove('hidden');
+    analysisResults.innerHTML = `
+        <div class="analysis-section">
+            <div class="section-header">
+                <span class="section-icon">⚠️</span>
+                <h3 class="section-title">Error</h3>
+            </div>
+            <div class="section-content" style="color: #ff4444;">${message}</div>
+        </div>
+    `;
+}
+
+// Go back to form
+function goBackToForm() {
+    const jobSearchPage = document.getElementById('jobSearchPage');
+    const resumeAnalysisPage = document.getElementById('resumeAnalysisPage');
+    
+    resumeAnalysisPage.classList.add('hidden');
+    jobSearchPage.classList.remove('hidden');
+    
+    window.scrollTo(0, 0);
+}
+
+// Search jobs from analysis
+function searchJobsFromAnalysis() {
+    // Use the analysis data to search for jobs
+    // For now, navigate to job results page
+    // In a real implementation, you would send the analysis data to the server
+    // to get matching jobs
+    
+    const resumeAnalysisPage = document.getElementById('resumeAnalysisPage');
+    const jobResultsPage = document.getElementById('jobResultsPage');
+    
+    resumeAnalysisPage.classList.add('hidden');
+    jobResultsPage.classList.remove('hidden');
+    
+    // Generate and display jobs based on analysis
+    // This is a placeholder - in real implementation, you'd fetch from server
+    currentJobIndex = 0;
+    allJobs = generateMockJobs(10);
+    
+    document.getElementById('jobCardsContainer').innerHTML = '';
+    document.getElementById('loadMoreBtn').classList.remove('hidden');
+    
+    displayJobs(allJobs);
+    currentJobIndex = allJobs.length;
+    
+    window.scrollTo(0, 0);
+}
+
 // Close auth page when clicking outside
 document.addEventListener('DOMContentLoaded', function() {
     const authPage = document.getElementById('authPage');
@@ -460,6 +741,12 @@ document.addEventListener('DOMContentLoaded', function() {
                 closeAuthPage();
             }
         });
+    }
+    
+    // Add form submission handler
+    const form = document.getElementById('jobSearchForm');
+    if (form) {
+        form.addEventListener('submit', handleFormSubmit);
     }
 });
 
