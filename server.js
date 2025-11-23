@@ -14,6 +14,33 @@ const ai = new GoogleGenAI({});
 app.use(express.json());
 app.use(cors());
 
+// JSearch API proxy endpoint
+app.get('/api/search/jobs', async (req, res) => {
+  try {
+    const query = req.query.query || '';
+    const page = req.query.page || 1;
+    const num_pages = req.query.num_pages || 1;
+    const apiKey = process.env.JSEARCH_API_KEY;
+    const apiUrl = 'https://jsearch.p.rapidapi.com/search';
+
+    const response = await axios.get(apiUrl, {
+      params: {
+        query,
+        page,
+        num_pages
+      },
+      headers: {
+        'X-RapidAPI-Key': apiKey,
+        'X-RapidAPI-Host': 'jsearch.p.rapidapi.com'
+      }
+    });
+    res.json(response.data);
+  } catch (err) {
+    console.error('JSearch API error:', err);
+    res.status(500).json({ error: 'Failed to fetch jobs from JSearch API.' });
+  }
+});
+
 app.post('/api/upload/resume', upload.single('myFile'), async (req, res) => {
   try{
     console.log('/upload/resume API called');

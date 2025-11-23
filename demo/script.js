@@ -706,30 +706,115 @@ function goBackToForm() {
 }
 
 // Search jobs from analysis
+// Search jobs from analysis
 function searchJobsFromAnalysis() {
-    // Use the analysis data to search for jobs
-    // For now, navigate to job results page
-    // In a real implementation, you would send the analysis data to the server
-    // to get matching jobs
-    
     const resumeAnalysisPage = document.getElementById('resumeAnalysisPage');
     const jobResultsPage = document.getElementById('jobResultsPage');
     
     resumeAnalysisPage.classList.add('hidden');
     jobResultsPage.classList.remove('hidden');
-    
-    // Generate and display jobs based on analysis
-    // This is a placeholder - in real implementation, you'd fetch from server
-    currentJobIndex = 0;
-    allJobs = generateMockJobs(10);
-    
-    document.getElementById('jobCardsContainer').innerHTML = '';
-    document.getElementById('loadMoreBtn').classList.remove('hidden');
-    
-    displayJobs(allJobs);
-    currentJobIndex = allJobs.length;
-    
     window.scrollTo(0, 0);
+
+    let searchQuery = 'developer jobs'; 
+
+    if (window.currentAnalysisData && window.currentAnalysisData.remoteResponse) {
+        const analysisText = window.currentAnalysisData.remoteResponse;
+        
+        // 1. Extract Job Title/Roles
+        const rolesMatch = analysisText.match(/JOB_TITLES_ROLES: ([^\n]*)/);
+        let jobTitle = '';
+        if (rolesMatch && rolesMatch[1]) {
+            jobTitle = rolesMatch[1].split(',')[0].trim();
+        }
+
+        // 2. Extract Top Skill/Technology
+        const skillsMatch = analysisText.match(/SKILLS_TECHNOLOGIES: ([^\n]*)/);
+        let topSkill = '';
+        if (skillsMatch && skillsMatch[1]) {
+            topSkill = skillsMatch[1].split(',')[0].trim();
+        }
+
+        // 3. Query Construction Logic
+        if (jobTitle) {
+            searchQuery = `${jobTitle} ${topSkill} jobs`;
+        } else if (topSkill) {
+            searchQuery = `${topSkill} developer jobs`;
+        }
+    }
+    
+    console.log('Final Search Query:', searchQuery);
+
+    // --- Call API ---
+    const jobCardsContainer = document.getElementById('jobCardsContainer');
+    jobCardsContainer.innerHTML = '<div class="loading-indicator"><div class="spinner"></div><p>Loading jobs...</p></div>';
+    
+    const loadMoreBtn = document.getElementById('loadMoreBtn');
+    if (loadMoreBtn) loadMoreBtn.classList.add('hidden');
+
+    // Call backend endpoint to fetch jobs
+    axios.get('http://127.0.0.1:3000/api/search/jobs', {
+        params: {
+            query: searchQuery, 
+            page: 1,
+            num_pages: 1
+        }
+    })
+    .then(response => {
+        console.log('JSearch API response:', response.data);
+        
+        // Extract jobs from response
+        const jobs = response.data.data || response.data || [];
+        
+        jobCardsContainer.innerHTML = '';
+        
+        if (jobs.length === 0) {
+            jobCardsContainer.innerHTML = '<p>No jobs found for your skills.</p>';
+        } else {
+            jobs.forEach(job => {
+                const title = job.job_title || job.title || 'No Title';
+                const salary = job.job_min_salary ? `$${job.job_min_salary}` : (job.salary || 'N/A');
+                const location = job.job_city ? `${job.job_city}, ${job.job_country}` : (job.location || 'Remote');
+                const description = job.job_description ? job.job_description.substring(0, 150) + '...' : 'No description available.';
+                const applyLink = job.job_apply_link || job.url || '#';
+
+                const card = document.createElement('div');
+                card.className = 'job-card';
+                card.innerHTML = `
+                    <div class="job-card-header">
+                        <div>
+                            <h3 class="job-title">${title}</h3>
+                            <div class="job-meta">
+                                <div class="meta-item">
+                                    <span class="meta-label">💰 Salary:</span>
+                                    <span class="meta-value">${salary}</span>
+                                </div>
+                                <div class="meta-item">
+                                    <span class="meta-label">📍 Location:</span>
+                                    <span class="meta-value">${location}</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="match-section">
+                        <h4 class="match-title">Job Description</h4>
+                        <div class="section-content">${description}</div>
+                    </div>
+                    <div class="job-card-footer">
+                        <a href="${applyLink}" target="_blank" class="apply-btn">Apply</a>
+                    </div>
+                `;
+                jobCardsContainer.appendChild(card);
+            });
+        }
+        
+        // Update results count
+        const resultsCount = document.getElementById('resultsCount');
+        if (resultsCount) resultsCount.textContent = jobs.length;
+    })
+    .catch(error => {
+        jobCardsContainer.innerHTML = '<p style="color:#ff4444;">Failed to load jobs. Please try again.</p>';
+        console.error('JSearch API error:', error);
+    });
 }
 
 // Close auth page when clicking outside
