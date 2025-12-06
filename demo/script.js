@@ -1,8 +1,12 @@
-var isSignedIn; // Track if the user is signed in; var is not initialized here so that it doesn't reset when the page reload
+//var isSignedIn;
+axios.defaults.headers.common["Authorization"] = 
+  "Bearer " + localStorage.getItem("authToken"); //Axios/Client now sends an Authorization header to the server which each request
+var token; // Track if the user is signed in; var is not initialized here so that it doesn't reset when the page reload
 // Initialize form with default fields
 document.addEventListener('DOMContentLoaded', function() {
     initializeForm();
-    isSignedIn = sessionStorage.getItem("isSignedIn") === "true";
+    //isSignedIn = sessionStorage.getItem("isSignedIn") === "true";
+    token = localStorage.getItem("authToken");
     switchSignIn(); // called immedately so that the page knows which to display on load
 });
 
@@ -10,7 +14,7 @@ const signedInPage = document.getElementById("mainPage");
 const signedOutPage = document.getElementById("mainPageSignedOut");
 // Signin feedback
 function switchSignIn(){ // defined again as its own function so that the page updates on sign in
-    if (isSignedIn) {
+    if (token) {
         signedInPage.classList.remove("hidden");
         signedOutPage.classList.add("hidden");
     } else {
@@ -386,6 +390,42 @@ function resetForm() {
     // Reinitialize with default fields
     initializeForm();
 }
+function showAccount(){
+    const token = localStorage.getItem("authToken");
+
+    if (token) {
+        // User is logged in → show account panel
+        showAccountPanel();
+    } else {
+        // User not logged in → show login page
+        showLoginPage();
+    }
+}
+
+function showAccountPanel() {
+    const panel = document.getElementById("accountPanel");
+    panel.style.display = "flex"; // because overlay uses flexbox
+
+    // OPTIONAL: fetch user info from the server
+    axios.get("/auth/me")
+        .then(res => {
+            document.getElementById("account-email").innerText = res.data.user.email;
+        })
+        .catch(() => {
+            // token invalid/expired → auto logout
+            logout();
+        });
+}
+function closeAccountPanel() {
+    document.getElementById("accountPanel").style.display = "none";
+}
+
+
+
+function logout() {
+    localStorage.removeItem("authToken");
+    location.reload();  // refresh UI state
+}
 
 // Auth Page Functions
 function showLoginPage() {
@@ -433,7 +473,7 @@ function switchAuthTab(tab) {
     }
 }
 
-function handleLogin(event) {
+async function handleLogin(event) {
     event.preventDefault();
     event.stopPropagation();
     
@@ -441,23 +481,38 @@ function handleLogin(event) {
     const password = document.getElementById('loginPassword').value;
     const rememberMe = document.getElementById('rememberMe').checked;
     
-    // In a real app, this would send to a server
-    console.log('Login attempt:', { email, rememberMe });
+      try {
+        const response = await axios.post("http://localhost:3000/auth/signin", {
+        email,
+        password
+        });
+
+        const { token } = response.data;
+
+        // Store JWT for future requests
+        localStorage.setItem("authToken", token);
+
+        console.log("Login successful!");
+        alert("Logged in successfully!");
+
+    } catch (err) {
+        console.error(err.response.data);
+        alert(err.response.data.error || "Login failed");
+    }
     
     // Close auth page immediately
     closeAuthPage();
-
-    isSignedIn=true;
-    sessionStorage.setItem("isSignedIn", true);
+    //isSignedIn=true;
+    //sessionStorage.setItem("isSignedIn", true);
     switchSignIn();
     console.log(`User logged in: ${email}`);
 }
 
-function handleSignup(event) {
+async function handleSignup(event) {
     event.preventDefault();
     event.stopPropagation();
     
-    const name = document.getElementById('signupName').value;
+    const username = document.getElementById('signupName').value;
     const email = document.getElementById('signupEmail').value;
     const password = document.getElementById('signupPassword').value;
     const confirmPassword = document.getElementById('signupConfirmPassword').value;
@@ -468,8 +523,20 @@ function handleSignup(event) {
         return;
     }
     
-    // In a real app, this would send to a server
-    console.log('Signup attempt:', { name, email });
+    try {
+        const response = await axios.post("http://localhost:3000/auth/signup", {
+        username,
+        email,
+        password
+        });
+
+        console.log(response.data.message); // "User created successfully"
+        alert("Sign-up successful! You can now log in.");
+
+    } catch (err) {
+        console.error(err.response.data);
+        alert(err.response.data.error || "Sign-up failed");
+    }   
     
     // Switch to login tab
     switchAuthTab('login');
@@ -478,7 +545,7 @@ function handleSignup(event) {
     document.getElementById('loginEmail').value = email;
     
     // For demo purposes, just log the success
-    console.log(`Account created: ${name} (${email})`);
+    //console.log(`Account created: ${name} (${email})`);
 }
 
 // Show resume analysis page

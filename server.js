@@ -4,6 +4,8 @@ import multer from 'multer';
 import { GoogleGenAI } from "@google/genai";
 import axios from "axios";
 import cors from "cors";
+import { connectDB, getCollectionData, getDB } from "./database.js";
+import authRoutes from "./routes/auth.js";
 
 dotenv.config();
 const app = express();
@@ -13,6 +15,11 @@ const ai = new GoogleGenAI({});
 
 app.use(express.json());
 app.use(cors());
+
+// Connect to MongoDB first
+await connectDB();
+app.use("/auth", authRoutes);
+console.log("Connected to DB inside server.js");
 
 // JSearch API proxy endpoint
 app.get('/api/search/jobs', async (req, res) => {
