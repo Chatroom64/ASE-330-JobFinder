@@ -24,8 +24,20 @@
         <div class="hero-section">
             <h1 class="hero-title">Find Your Perfect Job Match</h1>
             <p class="hero-subtitle">Upload your resume and discover jobs tailored to your skills and experience</p>
-            <button class="search-btn" id="search-by-resume" onclick="showJobSearchForm()">Search by Resume</button>
-        </div>
+            <button class="search-btn" id="search-by-resume" onclick="showSearchOptions()">Search by Resume</button>
+            <div id="about-section" style="padding:40px">
+                <h2 class="hero-title">How It Works</h2>
+                <p class = "hero-subtitle">Key words are picked out from your resume and used to search through a job database. From there, job listings are shown that you can apply to.</p>
+            </div>
+            <div id="analytics">
+                <h2 class="hero-title">Analytics</h2>
+                <p class="hero-subtitle">
+                    X users per month <br>
+                    Y applications processed
+                </p>
+            </div>
+        </div> 
+        
     </main>
 
     <!-- Main Page when not signed in -->
@@ -36,7 +48,23 @@
             <button class="search-btn" id="search-by-resume" onclick="showLoginPage()">Sign In</button>
         </div>
     </main>
-
+    <!-- Job Search Options-->
+    <div class="job-search-options hidden" id="jobSearchOptions">
+        <div class="job-search-options-container"> 
+            <div class="job-search-options-title">
+                <h2>Search</h2>
+                <hr style="color: red">
+                <p>Search by...</p>
+                
+            </div> 
+            <div class="job-search-options-button">
+                <button class="search-btn" id="guided-search" onclick="showJobSearchForm()">Keywords</button>
+                <button class="search-btn" id="resume-search" onclick="showResumeSearchForm()">Resume</button>
+            </div>
+        </div>
+        <button class="close-options-btn" onclick="closeSearchOptions()">×</button>
+    </div>
+    
     <!-- Job Search Form Page -->
     <div class="job-search-page hidden" id="jobSearchPage">
         <div class="form-container" >
@@ -65,6 +93,20 @@
                     ></textarea>
                 </div>
 
+                <!-- FILE UPLOAD
+                <div class="form-section">
+                    <label class="section-label">Upload Resume</label>
+                    <input class="search-jobs-btn" type="file" id="fileInput" accept=".txt"></input>
+                </div> -->
+
+                <!-- Action Buttons -->
+                <div class="form-actions">
+                    <button type="button" class="cancel-btn" onclick="cancelForm()">Cancel</button>
+                    <button type="submit" class="submit-btn" id="job-search-submit">Submit</button>
+                </div>
+            </form>
+            
+            <form class="job-search-resume" id="jobSearchResume" method="POST" enctype="multipart/form-data" name="myFile">
                 <!-- FILE UPLOAD -->
                 <div class="form-section">
                     <label class="section-label">Upload Resume</label>
@@ -75,7 +117,6 @@
                 <div class="form-actions">
                     <button type="button" class="cancel-btn" onclick="cancelForm()">Cancel</button>
                     <button type="submit" class="submit-btn" id="job-search-submit">Submit</button>
-                </div>
             </form>
         </div>
     </div>

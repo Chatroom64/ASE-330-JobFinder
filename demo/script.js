@@ -51,23 +51,63 @@ function goToMainPage() {
     window.scrollTo(0, 0);
 }
 
-// Show job search form page
+// Show search options
+function showSearchOptions(){
+    //const mainPage = document.getElementById('mainPage');
+    const jobSearchOptions = document.getElementById('jobSearchOptions');
+    //mainPage.classList.add('hidden');
+    jobSearchOptions.classList.remove('hidden');
+    jobSearchOptions.style.display = 'flex';
+}
+// Show guided search form page
 function showJobSearchForm() {
+    closeSearchOptions();
     const mainPage = document.getElementById('mainPage');
     const jobSearchPage = document.getElementById('jobSearchPage');
+    const jobSearchForm = document.getElementById('jobSearchForm');
+    const jobSearchResume= document.getElementById('jobSearchResume');
+
+    mainPage.classList.add('hidden');
+    jobSearchPage.classList.remove('hidden');
+    jobSearchForm.classList.remove('hidden');
+    jobSearchResume.classList.add('hidden');
+    // Scroll to top
+    window.scrollTo(0, 0); 
+}
+
+// Show resume upload form page
+function showResumeSearchForm() {
+    closeSearchOptions();
+    const mainPage = document.getElementById('mainPage');
+    const jobSearchPage = document.getElementById('jobSearchPage');
+    const jobSearchForm = document.getElementById('jobSearchForm');
+    const jobSearchResume= document.getElementById('jobSearchResume');
     
     mainPage.classList.add('hidden');
     jobSearchPage.classList.remove('hidden');
+    jobSearchResume.classList.remove('hidden');
+    jobSearchForm.classList.add('hidden');
+    
     // Scroll to top
     window.scrollTo(0, 0); 
+}
+function closeSearchOptions() {
+    const jobSearchOptions = document.getElementById('jobSearchOptions');
+    if (jobSearchOptions) {
+        jobSearchOptions.classList.add('hidden');
+        jobSearchOptions.style.display = 'none';
+        // Reset forms
+    }
 }
 
 // Cancel form and return to main page
 function cancelForm() {
     const mainPage = document.getElementById('mainPage');
     const jobSearchPage = document.getElementById('jobSearchPage');
+    const jobSearchResume = document.getElementById('jobSearchResume');
     
     jobSearchPage.classList.add('hidden');
+    jobSearchResume.classList.add('hidden');
     mainPage.classList.remove('hidden');
     
     // Reset form
@@ -304,6 +344,11 @@ function loadMoreJobs() {
     }, 500);
 }
 
+// Form submission for Keyword search; just goes straight to the results page for now
+function handleKeywordSubmit(event){
+    event.preventDefault;
+    showJobResults();
+}
 
 // Handle form submission
 function handleFormSubmit(event) {
@@ -674,6 +719,7 @@ function displayAnalysisResults(data) {
     }
     
     analysisResults.innerHTML = html;
+    hideLoadingIndicator()
     
     // Store analysis data for later use
     window.currentAnalysisData = data;

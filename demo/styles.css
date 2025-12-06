@@ -536,6 +536,9 @@ body {
 .load-more-btn.hidden {
     display: none;
 }
+#guided-search, #resume-search {
+    margin: 15px;
+}
 
 /* Auth Page (Login/Signup) */
 .auth-page {
@@ -552,11 +555,11 @@ body {
     backdrop-filter: blur(4px);
 }
 
-.auth-page.hidden {
+.auth-page.hidden, .job-search-options.hidden {
     display: none !important;
 }
 
-.auth-container {
+.auth-container{
     background: white;
     border-radius: 16px;
     padding: 40px;
@@ -565,6 +568,19 @@ body {
     position: relative;
     box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
     animation: slideIn 0.3s ease-out;
+}
+.job-search-options-container {
+    background: white;
+    border-radius: 16px;
+    padding: 40px;
+    width: 100%;
+    max-width: 480px;
+    position: relative;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+    animation: slideIn 0.3s ease-out;
+}
+.job-search-options-button {
+    align-items: center;
 }
 
 @keyframes slideIn {
@@ -578,7 +594,7 @@ body {
     }
 }
 
-.close-auth-btn {
+.close-auth-btn, .close-options-btn {
     position: absolute;
     top: 16px;
     right: 16px;
@@ -596,7 +612,7 @@ body {
     transition: all 0.2s;
 }
 
-.close-auth-btn:hover {
+.close-auth-btn:hover,.close-options-btn:hover {
     background: #e0e0e0;
     color: #1a1a1a;
 }
@@ -759,6 +775,19 @@ body {
 .auth-submit-btn:active {
     transform: translateY(0);
 }
+.job-search-options {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    backdrop-filter: blur(4px);
+}
 
 /* Responsive Design */
 @media (max-width: 768px) {
@@ -854,7 +883,7 @@ body {
         width: 100%;
     }
 
-    .auth-container {
+    .auth-container, .job-search-options-container {
         padding: 32px 24px;
         margin: 20px;
         max-width: calc(100% - 40px);
