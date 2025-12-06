@@ -1,13 +1,15 @@
-//var isSignedIn;
-axios.defaults.headers.common["Authorization"] = 
-  "Bearer " + localStorage.getItem("authToken"); //Axios/Client now sends an Authorization header to the server which each request
 var token; // Track if the user is signed in; var is not initialized here so that it doesn't reset when the page reload
 // Initialize form with default fields
-document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener("DOMContentLoaded", function() {
     initializeForm();
-    //isSignedIn = sessionStorage.getItem("isSignedIn") === "true";
+
     token = localStorage.getItem("authToken");
-    switchSignIn(); // called immedately so that the page knows which to display on load
+
+    if (token) {
+        axios.defaults.headers.common["Authorization"] = "Bearer " + token; //Axios/Client now sends an Authorization header to the server which each request
+    }
+
+    switchSignIn();
 });
 
 const signedInPage = document.getElementById("mainPage");
@@ -407,7 +409,7 @@ function showAccountPanel() {
     panel.style.display = "flex"; // because overlay uses flexbox
 
     // OPTIONAL: fetch user info from the server
-    axios.get("/auth/me")
+    axios.get("http://localhost:3000/auth/me")
         .then(res => {
             document.getElementById("account-email").innerText = res.data.user.email;
         })
@@ -423,8 +425,9 @@ function closeAccountPanel() {
 
 
 function logout() {
-    localStorage.removeItem("authToken");
-    location.reload();  // refresh UI state
+    token = null;                    // clear in-memory token
+    localStorage.removeItem("authToken"); // remove from storage
+    switchSignIn();                   // update UI immediately
 }
 
 // Auth Page Functions
@@ -487,10 +490,13 @@ async function handleLogin(event) {
         password
         });
 
-        const { token } = response.data;
+        const { jwtToken } = response.data;
 
         // Store JWT for future requests
-        localStorage.setItem("authToken", token);
+        localStorage.setItem("authToken", jwtToken);
+        // IMPORTANT: update axios after login
+        axios.defaults.headers.common["Authorization"] = "Bearer " + jwtToken;
+        token = localStorage.getItem("authToken");
 
         console.log("Login successful!");
         alert("Logged in successfully!");

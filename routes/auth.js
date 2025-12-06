@@ -51,6 +51,7 @@ router.post("/signup", async (req, res) => {
 // SIGN IN
 // ----------------------
 router.post("/signin", async (req, res) => {
+  console.log("Sign in was called");
   const db = getDB();
   const users = db.collection("Users");
 
@@ -88,25 +89,27 @@ router.post("/signin", async (req, res) => {
 });
 // Protected endpoint
 router.get("/me", authMiddleware, async (req, res) => {
-    try {
-        const db = getDB();
-        const users = db.collection("Users");
+  //console.log("Auth/me request");
+  //console.log(req.method, req.path, req.headers);
+  try {
+    const db = getDB();
+    const users = db.collection("Users");
 
-        // req.user contains decoded JWT payload (e.g., id)
-        const user = await users.findOne({ _id: new ObjectId(req.user.id) });
+    // req.user contains decoded JWT payload (e.g., id)
+    const user = await users.findOne({ _id: new ObjectId(req.user.id) });
 
-        if (!user) {
-            return res.status(404).json({ message: "User not found" });
-        }
-
-        // Send only safe info, not password
-        const { password, ...safeUser } = user;
-        res.json({ user: safeUser });
-
-    } catch (err) {
-        console.error(err);
-        res.status(500).json({ message: "Server error" });
+    if (!user) {
+        return res.status(404).json({ message: "User not found" });
     }
+
+    // Send only safe info, not password
+    const { password, ...safeUser } = user;
+    res.json({ user: safeUser });
+
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Server error" });
+  }
 });
 
 export default router;

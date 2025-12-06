@@ -2,6 +2,10 @@ import jwt from "jsonwebtoken";
 
 export function authMiddleware(req, res, next) {
     const authHeader = req.headers.authorization;
+    //console.log("authMiddleware: ");
+    //console.log(req.method, req.path, req.headers); //DEBUG
+    // Let preflight OPTIONS requests pass 
+    if (req.method === "OPTIONS") return res.sendStatus(200);
 
     if (!authHeader || !authHeader.startsWith("Bearer ")) {
         return res.status(401).json({ message: "No token provided" });

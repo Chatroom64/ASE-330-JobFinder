@@ -9,12 +9,11 @@ import authRoutes from "./routes/auth.js";
 
 dotenv.config();
 const app = express();
+app.use(cors());
 const upload = multer({ storage: multer.memoryStorage() }); //Keep files in memory
 // The client gets the API key from the environment variable `GEMINI_API_KEY`.
 const ai = new GoogleGenAI({});
-
 app.use(express.json());
-app.use(cors());
 
 // Connect to MongoDB first
 await connectDB();
