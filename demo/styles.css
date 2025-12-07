@@ -534,7 +534,7 @@ body {
 }
 
 .load-more-btn.hidden {
-    display: none;
+    display: none !important;
 }
 #guided-search, #resume-search {
     margin: 15px;

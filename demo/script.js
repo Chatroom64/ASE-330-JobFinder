@@ -65,12 +65,10 @@ function showJobSearchForm() {
     const mainPage = document.getElementById('mainPage');
     const jobSearchPage = document.getElementById('jobSearchPage');
     const jobSearchForm = document.getElementById('jobSearchForm');
-    const jobSearchResume= document.getElementById('jobSearchResume');
 
     mainPage.classList.add('hidden');
     jobSearchPage.classList.remove('hidden');
     jobSearchForm.classList.remove('hidden');
-    jobSearchResume.classList.add('hidden');
     // Scroll to top
     window.scrollTo(0, 0); 
 }
@@ -81,11 +79,9 @@ function showResumeSearchForm() {
     const mainPage = document.getElementById('mainPage');
     const jobSearchPage = document.getElementById('jobSearchPage');
     const jobSearchForm = document.getElementById('jobSearchForm');
-    const jobSearchResume= document.getElementById('jobSearchResume');
     
     mainPage.classList.add('hidden');
     jobSearchPage.classList.remove('hidden');
-    jobSearchResume.classList.remove('hidden');
     jobSearchForm.classList.add('hidden');
     
     // Scroll to top
@@ -104,10 +100,8 @@ function closeSearchOptions() {
 function cancelForm() {
     const mainPage = document.getElementById('mainPage');
     const jobSearchPage = document.getElementById('jobSearchPage');
-    const jobSearchResume = document.getElementById('jobSearchResume');
-    
+ 
     jobSearchPage.classList.add('hidden');
-    jobSearchResume.classList.add('hidden');
     mainPage.classList.remove('hidden');
     
     // Reset form
@@ -344,11 +338,6 @@ function loadMoreJobs() {
     }, 500);
 }
 
-// Form submission for Keyword search; just goes straight to the results page for now
-function handleKeywordSubmit(event){
-    event.preventDefault;
-    showJobResults();
-}
 
 // Handle form submission
 function handleFormSubmit(event) {
