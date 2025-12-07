@@ -12,7 +12,7 @@ document.addEventListener("DOMContentLoaded", function() {
     switchSignIn();
 });
 
-const signedInPage = document.getElementById("mainPageSignedIn");
+const signedInPage = document.getElementById("mainPage");
 const signedOutPage = document.getElementById("mainPageSignedOut");
 // Signin feedback
 function switchSignIn(){ // defined again as its own function so that the page updates on sign in
