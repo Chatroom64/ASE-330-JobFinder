@@ -741,7 +741,6 @@ function goBackToForm() {
 }
 
 // Search jobs from analysis
-// Search jobs from analysis
 function searchJobsFromAnalysis() {
     const resumeAnalysisPage = document.getElementById('resumeAnalysisPage');
     const jobResultsPage = document.getElementById('jobResultsPage');
