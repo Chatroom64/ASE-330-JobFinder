@@ -1,9 +1,8 @@
 import jwt from "jsonwebtoken";
 
 export function authMiddleware(req, res, next) {
+    console.log('Auth middleware hit for', req.method, req.path, req.headers);
     const authHeader = req.headers.authorization;
-    //console.log("authMiddleware: ");
-    //console.log(req.method, req.path, req.headers); //DEBUG
     // Let preflight OPTIONS requests pass 
     if (req.method === "OPTIONS") return res.sendStatus(200);
 

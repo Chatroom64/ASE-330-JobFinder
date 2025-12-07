@@ -6,6 +6,8 @@ import axios from "axios";
 import cors from "cors";
 import { connectDB, getCollectionData, getDB } from "./database.js";
 import authRoutes from "./routes/auth.js";
+import { ObjectId } from "mongodb";
+import { authMiddleware } from "./middleware/auth.js";
 
 dotenv.config();
 const app = express();
@@ -47,8 +49,10 @@ app.get('/api/search/jobs', async (req, res) => {
   }
 });
 
-app.post('/api/upload/resume', upload.single('myFile'), async (req, res) => {
+app.post('/api/upload/resume', authMiddleware, upload.single('myFile'), async (req, res) => {
   try{
+    console.log('req.user:', req.user);
+    console.log('req.file:', req.file);
     console.log('/upload/resume API called');
     const fileBuffer = req.file.buffer; // this is a Node.js Buffer
     const fileContents = fileBuffer.toString('utf8'); // convert to string if it's text
@@ -59,6 +63,15 @@ app.post('/api/upload/resume', upload.single('myFile'), async (req, res) => {
       resume: fileContents
     });
     console.log(response.data); //Debugging
+    const db = getDB();
+    await db.collection('Users').updateOne(
+      {_id: new ObjectId(req.user.id) },
+      {
+        $set: { 'resume': fileContents, 'keywords': response.data.result },
+        $currentDate: { lastModified: true }
+      }
+    );
+    // req.user contains decoded JWT payload (e.g., id)
     res.json({
       message: "File sent!",
       remoteResponse: response.data.result

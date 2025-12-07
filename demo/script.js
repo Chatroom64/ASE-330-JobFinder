@@ -361,7 +361,8 @@ function handleFormSubmit(event) {
     // Send to server
     axios.post('http://127.0.0.1:3000/api/upload/resume', formData, {
         headers: {
-            'Content-Type': 'multipart/form-data'
+            'Content-Type': 'multipart/form-data',
+            "Authorization": "Bearer " + token
         }
     })
     .then(response => {
