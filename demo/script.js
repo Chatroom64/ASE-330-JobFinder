@@ -1,16 +1,22 @@
-var isSignedIn; // Track if the user is signed in; var is not initialized here so that it doesn't reset when the page reload
+let token; // Track if the user is signed in; var is not initialized here so that it doesn't reset when the page reload
 // Initialize form with default fields
-document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener("DOMContentLoaded", function() {
     initializeForm();
-    isSignedIn = sessionStorage.getItem("isSignedIn") === "true";
-    switchSignIn(); // called immedately so that the page knows which to display on load
+
+    token = localStorage.getItem("authToken");
+
+    if (token) {
+        axios.defaults.headers.common["Authorization"] = "Bearer " + token; //Axios/Client now sends an Authorization header to the server which each request
+    }
+
+    switchSignIn();
 });
 
-const signedInPage = document.getElementById("mainPage");
+const signedInPage = document.getElementById("mainPageSignedIn");
 const signedOutPage = document.getElementById("mainPageSignedOut");
 // Signin feedback
 function switchSignIn(){ // defined again as its own function so that the page updates on sign in
-    if (isSignedIn) {
+    if (token) {
         signedInPage.classList.remove("hidden");
         signedOutPage.classList.add("hidden");
     } else {
@@ -32,7 +38,8 @@ function initializeForm() {
 
 // Navigate to main page
 function goToMainPage() {
-    const mainPage = document.getElementById('mainPage');
+    const mainPageSignedIn = document.getElementById('mainPageSignedIn');
+    const mainPageSignedOut = document.getElementById('mainPageSignedOut');
     const jobSearchPage = document.getElementById('jobSearchPage');
     const jobResultsPage = document.getElementById('jobResultsPage');
     const resumeAnalysisPage = document.getElementById('resumeAnalysisPage');
@@ -45,7 +52,13 @@ function goToMainPage() {
     authPage.classList.add('hidden');
     
     // Show main page
-    mainPage.classList.remove('hidden');
+    if (token){
+        mainPageSignedIn.classList.remove('hidden');
+        mainPageSignedOut.classList.add('hidden');
+    }else{
+        mainPageSignedIn.classList.add('hidden');
+        mainPageSignedOut.classList.remove('hidden');
+    }
     
     // Scroll to top
     window.scrollTo(0, 0);
@@ -61,22 +74,7 @@ function showSearchOptions(){
 }
 // Show guided search form page
 function showJobSearchForm() {
-    closeSearchOptions();
-    const mainPage = document.getElementById('mainPage');
-    const jobSearchPage = document.getElementById('jobSearchPage');
-    const jobSearchForm = document.getElementById('jobSearchForm');
-
-    mainPage.classList.add('hidden');
-    jobSearchPage.classList.remove('hidden');
-    jobSearchForm.classList.remove('hidden');
-    // Scroll to top
-    window.scrollTo(0, 0); 
-}
-
-// Show resume upload form page
-function showResumeSearchForm() {
-    closeSearchOptions();
-    const mainPage = document.getElementById('mainPage');
+    const mainPage = document.getElementById('mainPageSignedIn');
     const jobSearchPage = document.getElementById('jobSearchPage');
     const jobSearchForm = document.getElementById('jobSearchForm');
     
@@ -98,7 +96,7 @@ function closeSearchOptions() {
 
 // Cancel form and return to main page
 function cancelForm() {
-    const mainPage = document.getElementById('mainPage');
+    const mainPage = document.getElementById('mainPageSignedIn');
     const jobSearchPage = document.getElementById('jobSearchPage');
  
     jobSearchPage.classList.add('hidden');
@@ -382,7 +380,8 @@ function handleFormSubmit(event) {
     // Send to server
     axios.post('http://127.0.0.1:3000/api/upload/resume', formData, {
         headers: {
-            'Content-Type': 'multipart/form-data'
+            'Content-Type': 'multipart/form-data',
+            "Authorization": "Bearer " + token
         }
     })
     .then(response => {
@@ -419,6 +418,47 @@ function resetForm() {
     
     // Reinitialize with default fields
     initializeForm();
+}
+function showAccount(){
+    const token = localStorage.getItem("authToken");
+
+    if (token) {
+        // User is logged in → show account panel
+        showAccountPanel();
+    } else {
+        // User not logged in → show login page
+        showLoginPage();
+    }
+}
+
+function showAccountPanel() {
+    const panel = document.getElementById("accountPanel");
+    panel.classList.remove("hidden");
+
+    //Fetch user info from the server
+    axios.get("http://localhost:3000/auth/me")
+        .then(res => {
+            document.getElementById("account-email").innerText = truncateText(res.data.user.email);
+            document.getElementById("account-resume").innerText = truncateText(res.data.user.resume);
+            document.getElementById("account-keywords").innerText = truncateText(res.data.user.keywords);
+        })
+        .catch(() => {
+            // token invalid/expired → auto logout
+            logout();
+        });
+}
+function closeAccountPanel() {
+    document.getElementById("accountPanel").classList.add("hidden");
+}
+
+function logout() {
+    token = null;                    // clear in-memory token
+    localStorage.removeItem("authToken"); // remove from storage
+    switchSignIn();                   // update UI immediately
+}
+function truncateText(text, maxLength = 150) {
+    if (!text) return ""; // handle null/undefined
+    return text.length > maxLength ? text.slice(0, maxLength) + "..." : text;
 }
 
 // Auth Page Functions
@@ -467,7 +507,7 @@ function switchAuthTab(tab) {
     }
 }
 
-function handleLogin(event) {
+async function handleLogin(event) {
     event.preventDefault();
     event.stopPropagation();
     
@@ -475,23 +515,41 @@ function handleLogin(event) {
     const password = document.getElementById('loginPassword').value;
     const rememberMe = document.getElementById('rememberMe').checked;
     
-    // In a real app, this would send to a server
-    console.log('Login attempt:', { email, rememberMe });
+      try {
+        const response = await axios.post("http://localhost:3000/auth/signin", {
+        email,
+        password
+        });
+
+        const { token: jwtToken } = response.data;
+
+        // Store JWT for future requests
+        localStorage.setItem("authToken", jwtToken);
+        // IMPORTANT: update axios after login
+        axios.defaults.headers.common["Authorization"] = "Bearer " + jwtToken;
+        token = localStorage.getItem("authToken");
+
+        console.log("Login successful!");
+        alert("Logged in successfully!");
+
+    } catch (err) {
+        console.error(err.response.data);
+        alert(err.response.data.error || "Login failed");
+    }
     
     // Close auth page immediately
     closeAuthPage();
-
-    isSignedIn=true;
-    sessionStorage.setItem("isSignedIn", true);
+    //isSignedIn=true;
+    //sessionStorage.setItem("isSignedIn", true);
     switchSignIn();
     console.log(`User logged in: ${email}`);
 }
 
-function handleSignup(event) {
+async function handleSignup(event) {
     event.preventDefault();
     event.stopPropagation();
     
-    const name = document.getElementById('signupName').value;
+    const username = document.getElementById('signupName').value;
     const email = document.getElementById('signupEmail').value;
     const password = document.getElementById('signupPassword').value;
     const confirmPassword = document.getElementById('signupConfirmPassword').value;
@@ -502,8 +560,20 @@ function handleSignup(event) {
         return;
     }
     
-    // In a real app, this would send to a server
-    console.log('Signup attempt:', { name, email });
+    try {
+        const response = await axios.post("http://localhost:3000/auth/signup", {
+        username,
+        email,
+        password
+        });
+
+        console.log(response.data.message); // "User created successfully"
+        alert("Sign-up successful! You can now log in.");
+
+    } catch (err) {
+        console.error(err.response.data);
+        alert(err.response.data.error || "Sign-up failed");
+    }   
     
     // Switch to login tab
     switchAuthTab('login');
@@ -512,12 +582,12 @@ function handleSignup(event) {
     document.getElementById('loginEmail').value = email;
     
     // For demo purposes, just log the success
-    console.log(`Account created: ${name} (${email})`);
+    //console.log(`Account created: ${name} (${email})`);
 }
 
 // Show resume analysis page
 function showResumeAnalysisPage() {
-    const mainPage = document.getElementById('mainPage');
+    const mainPage = document.getElementById('mainPageSignedIn');
     const jobSearchPage = document.getElementById('jobSearchPage');
     const jobResultsPage = document.getElementById('jobResultsPage');
     const resumeAnalysisPage = document.getElementById('resumeAnalysisPage');
