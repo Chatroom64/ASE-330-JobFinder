@@ -416,10 +416,12 @@ function showAccountPanel() {
     const panel = document.getElementById("accountPanel");
     panel.classList.remove("hidden");
 
-    // OPTIONAL: fetch user info from the server
+    //Fetch user info from the server
     axios.get("http://localhost:3000/auth/me")
         .then(res => {
-            document.getElementById("account-email").innerText = res.data.user.email;
+            document.getElementById("account-email").innerText = truncateText(res.data.user.email);
+            document.getElementById("account-resume").innerText = truncateText(res.data.user.resume);
+            document.getElementById("account-keywords").innerText = truncateText(res.data.user.keywords);
         })
         .catch(() => {
             // token invalid/expired → auto logout
@@ -430,12 +432,14 @@ function closeAccountPanel() {
     document.getElementById("accountPanel").classList.add("hidden");
 }
 
-
-
 function logout() {
     token = null;                    // clear in-memory token
     localStorage.removeItem("authToken"); // remove from storage
     switchSignIn();                   // update UI immediately
+}
+function truncateText(text, maxLength = 150) {
+    if (!text) return ""; // handle null/undefined
+    return text.length > maxLength ? text.slice(0, maxLength) + "..." : text;
 }
 
 // Auth Page Functions
