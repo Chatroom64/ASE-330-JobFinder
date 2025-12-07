@@ -1,4 +1,4 @@
-var token; // Track if the user is signed in; var is not initialized here so that it doesn't reset when the page reload
+let token; // Track if the user is signed in; var is not initialized here so that it doesn't reset when the page reload
 // Initialize form with default fields
 document.addEventListener("DOMContentLoaded", function() {
     initializeForm();
@@ -12,7 +12,7 @@ document.addEventListener("DOMContentLoaded", function() {
     switchSignIn();
 });
 
-const signedInPage = document.getElementById("mainPage");
+const signedInPage = document.getElementById("mainPageSignedIn");
 const signedOutPage = document.getElementById("mainPageSignedOut");
 // Signin feedback
 function switchSignIn(){ // defined again as its own function so that the page updates on sign in
@@ -38,7 +38,8 @@ function initializeForm() {
 
 // Navigate to main page
 function goToMainPage() {
-    const mainPage = document.getElementById('mainPage');
+    const mainPageSignedIn = document.getElementById('mainPageSignedIn');
+    const mainPageSignedOut = document.getElementById('mainPageSignedOut');
     const jobSearchPage = document.getElementById('jobSearchPage');
     const jobResultsPage = document.getElementById('jobResultsPage');
     const resumeAnalysisPage = document.getElementById('resumeAnalysisPage');
@@ -51,7 +52,13 @@ function goToMainPage() {
     authPage.classList.add('hidden');
     
     // Show main page
-    mainPage.classList.remove('hidden');
+    if (token){
+        mainPageSignedIn.classList.remove('hidden');
+        mainPageSignedOut.classList.add('hidden');
+    }else{
+        mainPageSignedIn.classList.add('hidden');
+        mainPageSignedOut.classList.remove('hidden');
+    }
     
     // Scroll to top
     window.scrollTo(0, 0);
@@ -59,7 +66,7 @@ function goToMainPage() {
 
 // Show job search form page
 function showJobSearchForm() {
-    const mainPage = document.getElementById('mainPage');
+    const mainPage = document.getElementById('mainPageSignedIn');
     const jobSearchPage = document.getElementById('jobSearchPage');
     
     mainPage.classList.add('hidden');
@@ -70,7 +77,7 @@ function showJobSearchForm() {
 
 // Cancel form and return to main page
 function cancelForm() {
-    const mainPage = document.getElementById('mainPage');
+    const mainPage = document.getElementById('mainPageSignedIn');
     const jobSearchPage = document.getElementById('jobSearchPage');
     
     jobSearchPage.classList.add('hidden');
@@ -406,7 +413,7 @@ function showAccount(){
 
 function showAccountPanel() {
     const panel = document.getElementById("accountPanel");
-    panel.style.display = "flex"; // because overlay uses flexbox
+    panel.classList.remove("hidden");
 
     // OPTIONAL: fetch user info from the server
     axios.get("http://localhost:3000/auth/me")
@@ -419,7 +426,7 @@ function showAccountPanel() {
         });
 }
 function closeAccountPanel() {
-    document.getElementById("accountPanel").style.display = "none";
+    document.getElementById("accountPanel").classList.add("hidden");
 }
 
 
@@ -490,7 +497,7 @@ async function handleLogin(event) {
         password
         });
 
-        const { jwtToken } = response.data;
+        const { token: jwtToken } = response.data;
 
         // Store JWT for future requests
         localStorage.setItem("authToken", jwtToken);
@@ -556,7 +563,7 @@ async function handleSignup(event) {
 
 // Show resume analysis page
 function showResumeAnalysisPage() {
-    const mainPage = document.getElementById('mainPage');
+    const mainPage = document.getElementById('mainPageSignedIn');
     const jobSearchPage = document.getElementById('jobSearchPage');
     const jobResultsPage = document.getElementById('jobResultsPage');
     const resumeAnalysisPage = document.getElementById('resumeAnalysisPage');

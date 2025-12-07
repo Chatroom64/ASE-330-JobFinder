@@ -51,7 +51,7 @@ router.post("/signup", async (req, res) => {
 // SIGN IN
 // ----------------------
 router.post("/signin", async (req, res) => {
-  console.log("Sign in was called");
+  //console.log("Sign in was called");
   const db = getDB();
   const users = db.collection("Users");
 
@@ -76,7 +76,8 @@ router.post("/signin", async (req, res) => {
       JWT_SECRET,
       { expiresIn: "7d" }
     );
-
+    console.log("Sign in Token created: ")
+    console.log(token)
     res.json({
       message: "Logged in successfully",
       token
