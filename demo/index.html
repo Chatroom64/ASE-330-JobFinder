@@ -24,8 +24,20 @@
         <div class="hero-section">
             <h1 class="hero-title">Find Your Perfect Job Match</h1>
             <p class="hero-subtitle">Upload your resume and discover jobs tailored to your skills and experience</p>
-            <button class="search-btn" id="search-by-resume" onclick="showJobSearchForm()">Search by Resume</button>
-        </div>
+            <button class="search-btn" id="search-by-resume" onclick="showJobSearchForm()">Start Your Search</button>
+            <div id="about-section" style="padding:40px">
+                <h2 class="hero-title">How It Works</h2>
+                <p class = "hero-subtitle">Key words are picked out from your resume and used to search through a job database. From there, job listings are shown that you can apply to.</p>
+            </div>
+            <div id="analytics">
+                <h2 class="hero-title">Analytics</h2>
+                <p class="hero-subtitle">
+                    X users per month <br>
+                    Y applications processed
+                </p>
+            </div>
+        </div> 
+        
     </main>
 
     <!-- Main Page when not signed in -->
@@ -36,7 +48,7 @@
             <button class="search-btn" id="search-by-resume" onclick="showLoginPage()">Sign In</button>
         </div>
     </main>
-
+    
     <!-- Job Search Form Page -->
     <div class="job-search-page hidden" id="jobSearchPage">
         <div class="form-container" >
@@ -65,7 +77,7 @@
                     ></textarea>
                 </div>
 
-                <!-- FILE UPLOAD -->
+                <!--FILE UPLOAD-->
                 <div class="form-section">
                     <label class="section-label">Upload Resume</label>
                     <input class="search-jobs-btn" type="file" id="fileInput" accept=".txt"></input>
