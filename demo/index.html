@@ -12,10 +12,10 @@
         <div class="nav-container">
             <div class="logo" onclick="goToMainPage()" style="cursor: pointer;">JobFinder</div>
             <div class="nav-links">
-                <a href="#" class="nav-link">About</a>
-                <a href="#" class="nav-link">Contact</a>
+                <a href="about.html" class="nav-link">About</a>
+                <a href="about.html" class="nav-link">Contact</a>
             </div>
-            <button class="account-btn" onclick="showLoginPage()">Account</button>
+            <button class="account-btn" onclick="showAccount()">Account</button>
         </div>
     </nav>
 
@@ -24,10 +24,31 @@
         <div class="hero-section" id="hero-section">
             <h1 class="hero-title">Find Your Perfect Job Match</h1>
             <p class="hero-subtitle">Upload your resume and discover jobs tailored to your skills and experience</p>
-            <button class="search-btn" id="search-by-resume" onclick="showJobSearchForm()">Search by Resume</button>
-        </div>
+            <button class="search-btn" id="search-by-resume" onclick="showJobSearchForm()">Start Your Search</button>
+            <div id="about-section" style="padding:40px">
+                <h2 class="hero-title">How It Works</h2>
+                <p class = "hero-subtitle">Key words are picked out from your resume and used to search through a job database. From there, job listings are shown that you can apply to.</p>
+            </div>
+            <div id="analytics">
+                <h2 class="hero-title">Analytics</h2>
+                <p class="hero-subtitle">
+                    X users per month <br>
+                    Y applications processed
+                </p>
+            </div>
+        </div> 
+        
     </main>
 
+    <!-- Main Page when not signed in -->
+    <main class="main-page-signed-out" id="mainPageSignedOut">
+        <div class="hero-section">
+            <h1 class="hero-title">Sign In To Start</h1>
+            <p class="hero-subtitle">Sign in to use the app</p>
+            <button class="search-btn" id="search-by-resume" onclick="showLoginPage()">Sign In</button>
+        </div>
+    </main>
+    
     <!-- Job Search Form Page -->
     <div class="job-search-page hidden" id="jobSearchPage">
         <div class="form-container" >
@@ -56,11 +77,11 @@
                     ></textarea>
                 </div>
 
-                <!-- FILE UPLOAD -->
-                 <div class="form-section">
-                     <label class="section-label">Upload Resume</label>
-                     <input type="file" id="fileInput"></input>
-                 </div>
+                <!--FILE UPLOAD-->
+                <div class="form-section">
+                    <label class="section-label">Upload Resume</label>
+                    <input class="search-jobs-btn" type="file" id="fileInput" accept=".txt"></input>
+                </div>
 
                 <!-- Action Buttons -->
                 <div class="form-actions">
@@ -72,8 +93,9 @@
     </div>
     <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
     <script>
-        const button = document.getElementById("jobSearchForm");
-        button.addEventListener('submit', async (e) => {
+        /*
+        const form = document.getElementById("jobSearchForm");
+        form.addEventListener('submit', async (e) => {
             e.preventDefault()
             console.log('File upload attempt');
             try {
@@ -81,16 +103,35 @@
                 const fileInput = document.getElementById("fileInput");
                 formData.append('myFile', fileInput.files[0]); // 'myFile' matches the name attribute in the HTML input
                 const response = await axios.post('http://127.0.0.1:3000/api/upload/resume', formData, {
-                    headers: {
-                        'Content-Type': 'multipart/form-data'
-                    }
                 });
                 console.log('File uploaded successfully:', response.data);
             } catch (error) {
                 console.error('Error uploading file:', error);
             }
         });
+    */
     </script>
+
+    <!-- Resume Analysis Results Page -->
+    <div class="resume-analysis-page hidden" id="resumeAnalysisPage">
+        <div class="analysis-container">
+            <h2 class="analysis-title">Resume Analysis Results</h2>
+            
+            <div id="loadingIndicator" class="loading-indicator hidden">
+                <div class="spinner"></div>
+                <p>Analyzing your resume...</p>
+            </div>
+
+            <div id="analysisResults" class="analysis-results hidden">
+                <!-- Analysis results will be displayed here -->
+            </div>
+
+            <div class="analysis-actions">
+                <button type="button" class="back-btn" onclick="goBackToForm()">Back to Form</button>
+                <button type="button" class="search-jobs-btn" onclick="searchJobsFromAnalysis()">Search Matching Jobs</button>
+            </div>
+        </div>
+    </div>
 
     <!-- Job Results Page -->
     <div class="job-results-page hidden" id="jobResultsPage">
@@ -225,7 +266,19 @@
             <button class="close-auth-btn" onclick="closeAuthPage()">×</button>
         </div>
     </div>
+        <div id="accountPanel" class="account-overlay hidden">
+        <div class="account-content">
+            <h2>Your Account</h2>
+            <p>Email: <span id="account-email"></span></p>
+            <p>Resume: <span id="account-resume"></span></p>
+            <p>Keywords: <span id="account-keywords"></span></p>
 
+            <button onclick="logout()">Log Out</button>
+            <button onclick="closeAccountPanel()">Close</button>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
     <script src="script.js"></script>
     <script>
             
