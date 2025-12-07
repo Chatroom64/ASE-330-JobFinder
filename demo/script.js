@@ -64,41 +64,22 @@ function goToMainPage() {
     window.scrollTo(0, 0);
 }
 
-// Show search options
-function showSearchOptions(){
-    //const mainPage = document.getElementById('mainPage');
-    const jobSearchOptions = document.getElementById('jobSearchOptions');
-    //mainPage.classList.add('hidden');
-    jobSearchOptions.classList.remove('hidden');
-    jobSearchOptions.style.display = 'flex';
-}
-// Show guided search form page
+// Show job search form page
 function showJobSearchForm() {
     const mainPage = document.getElementById('mainPageSignedIn');
     const jobSearchPage = document.getElementById('jobSearchPage');
-    const jobSearchForm = document.getElementById('jobSearchForm');
     
     mainPage.classList.add('hidden');
     jobSearchPage.classList.remove('hidden');
-    jobSearchForm.classList.add('hidden');
-    
     // Scroll to top
     window.scrollTo(0, 0); 
-}
-function closeSearchOptions() {
-    const jobSearchOptions = document.getElementById('jobSearchOptions');
-    if (jobSearchOptions) {
-        jobSearchOptions.classList.add('hidden');
-        jobSearchOptions.style.display = 'none';
-        // Reset forms
-    }
 }
 
 // Cancel form and return to main page
 function cancelForm() {
     const mainPage = document.getElementById('mainPageSignedIn');
     const jobSearchPage = document.getElementById('jobSearchPage');
- 
+    
     jobSearchPage.classList.add('hidden');
     mainPage.classList.remove('hidden');
     
@@ -778,7 +759,6 @@ function displayAnalysisResults(data) {
     }
     
     analysisResults.innerHTML = html;
-    hideLoadingIndicator()
     
     // Store analysis data for later use
     window.currentAnalysisData = data;
@@ -810,6 +790,7 @@ function goBackToForm() {
     window.scrollTo(0, 0);
 }
 
+// Search jobs from analysis
 // Search jobs from analysis
 function searchJobsFromAnalysis() {
     const resumeAnalysisPage = document.getElementById('resumeAnalysisPage');
