@@ -15,12 +15,12 @@
                 <a href="about.html" class="nav-link">About</a>
                 <a href="about.html" class="nav-link">Contact</a>
             </div>
-            <button class="account-btn" onclick="showLoginPage()">Account</button>
+            <button class="account-btn" onclick="showAccount()">Account</button>
         </div>
     </nav>
 
     <!-- Main Page -->
-    <main class="main-page" id="mainPage">
+    <main class="main-page" id="mainPageSignedIn">
         <div class="hero-section">
             <h1 class="hero-title">Find Your Perfect Job Match</h1>
             <p class="hero-subtitle">Upload your resume and discover jobs tailored to your skills and experience</p>
@@ -81,6 +81,7 @@
     </div>
     <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
     <script>
+        /*
         const form = document.getElementById("jobSearchForm");
         form.addEventListener('submit', async (e) => {
             e.preventDefault()
@@ -96,6 +97,7 @@
                 console.error('Error uploading file:', error);
             }
         });
+    */
     </script>
 
     <!-- Resume Analysis Results Page -->
@@ -250,6 +252,17 @@
             </div>
 
             <button class="close-auth-btn" onclick="closeAuthPage()">×</button>
+        </div>
+    </div>
+        <div id="accountPanel" class="account-overlay hidden">
+        <div class="account-content">
+            <h2>Your Account</h2>
+            <p>Email: <span id="account-email"></span></p>
+            <p>Resume: <span id="account-resume"></span></p>
+            <p>Keywords: <span id="account-keywords"></span></p>
+
+            <button onclick="logout()">Log Out</button>
+            <button onclick="closeAccountPanel()">Close</button>
         </div>
     </div>
 
