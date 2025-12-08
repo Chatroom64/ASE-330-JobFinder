@@ -125,8 +125,37 @@
     <div class="job-results-page hidden" id="jobResultsPage">
         
         <div class="results-container">
-            <h2 class="results-title">Job Search Results</h2>
-            <p class="results-subtitle">Found <span id="resultsCount">0</span> matching jobs</p>
+            <div class="results-header">
+                <div>
+                    <h2 class="results-title">Job Search Results</h2>
+                    <p class="results-subtitle">Found <span id="resultsCount">0</span> matching jobs</p>
+                </div>
+                <div class="grid-size-selector">
+                    <span class="grid-size-label">View:</span>
+                    <button class="grid-size-btn" data-size="small" onclick="setGridSize('small')" title="Small (4 columns)">
+                        <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+                            <rect x="1" y="1" width="6" height="6" rx="1"/>
+                            <rect x="9" y="1" width="6" height="6" rx="1"/>
+                            <rect x="1" y="9" width="6" height="6" rx="1"/>
+                            <rect x="9" y="9" width="6" height="6" rx="1"/>
+                        </svg>
+                    </button>
+                    <button class="grid-size-btn active" data-size="medium" onclick="setGridSize('medium')" title="Medium (2 columns)">
+                        <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+                            <rect x="1" y="1" width="7" height="6" rx="1"/>
+                            <rect x="8" y="1" width="7" height="6" rx="1"/>
+                            <rect x="1" y="9" width="7" height="6" rx="1"/>
+                            <rect x="8" y="9" width="7" height="6" rx="1"/>
+                        </svg>
+                    </button>
+                    <button class="grid-size-btn" data-size="large" onclick="setGridSize('large')" title="Large (1 column)">
+                        <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+                            <rect x="1" y="1" width="14" height="6" rx="1"/>
+                            <rect x="1" y="9" width="14" height="6" rx="1"/>
+                        </svg>
+                    </button>
+                </div>
+            </div>
 
             <div class="job-cards-container" id="jobCardsContainer">
                 <!-- Job cards will be dynamically added here -->

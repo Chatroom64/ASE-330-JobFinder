@@ -403,8 +403,39 @@ function showJobResults() {
     jobSearchPage.classList.add('hidden');
     jobResultsPage.classList.remove('hidden');
     
+    // Initialize grid size from localStorage or default to medium
+    const savedGridSize = localStorage.getItem('jobGridSize') || 'medium';
+    setGridSize(savedGridSize, false);
+    
     // Scroll to top
     window.scrollTo(0, 0);
+}
+
+// Set grid size for job cards
+function setGridSize(size, savePreference = true) {
+    const jobCardsContainer = document.getElementById('jobCardsContainer');
+    const gridSizeButtons = document.querySelectorAll('.grid-size-btn');
+    
+    if (!jobCardsContainer) return;
+    
+    // Remove all grid size classes
+    jobCardsContainer.classList.remove('grid-small', 'grid-medium', 'grid-large');
+    
+    // Add selected grid size class
+    jobCardsContainer.classList.add(`grid-${size}`);
+    
+    // Update button states
+    gridSizeButtons.forEach(btn => {
+        btn.classList.remove('active');
+        if (btn.getAttribute('data-size') === size) {
+            btn.classList.add('active');
+        }
+    });
+    
+    // Save preference to localStorage
+    if (savePreference) {
+        localStorage.setItem('jobGridSize', size);
+    }
 }
 
 // Reset form to initial state
@@ -1061,6 +1092,11 @@ async function searchJobsFromAnalysis() {
     
     resumeAnalysisPage.classList.add('hidden');
     jobResultsPage.classList.remove('hidden');
+    
+    // Initialize grid size from localStorage or default to medium
+    const savedGridSize = localStorage.getItem('jobGridSize') || 'medium';
+    setGridSize(savedGridSize, false);
+    
     window.scrollTo(0, 0);
 
     // Get edited analysis data or original data
@@ -1104,9 +1140,23 @@ async function searchJobsFromAnalysis() {
     
     console.log('Searching jobs for skills:', allSkills);
 
-    // --- Show loading state ---
+    // --- Show loading state with tips ---
     const jobCardsContainer = document.getElementById('jobCardsContainer');
-    jobCardsContainer.innerHTML = '<div class="loading-indicator"><div class="spinner"></div><p>Searching jobs for your skills...</p></div>';
+    const loadingDiv = document.createElement('div');
+    loadingDiv.className = 'loading-indicator';
+    loadingDiv.innerHTML = `
+        <div class="spinner"></div>
+        <p class="loading-text">Searching jobs for your skills...</p>
+        <div class="loading-tip" id="loadingTip">
+            <span class="tip-icon">💡</span>
+            <span class="tip-text">Did you know that...</span>
+        </div>
+    `;
+    jobCardsContainer.innerHTML = '';
+    jobCardsContainer.appendChild(loadingDiv);
+    
+    // Start showing tips
+    let tipInterval = startLoadingTips();
     
     const loadMoreBtn = document.getElementById('loadMoreBtn');
     if (loadMoreBtn) loadMoreBtn.classList.add('hidden');
@@ -1159,6 +1209,11 @@ async function searchJobsFromAnalysis() {
         });
         
         console.log(`Found ${allJobs.length} total jobs from ${allSkills.length} skills`);
+        
+        // Stop showing tips
+        if (tipInterval) {
+            clearInterval(tipInterval);
+        }
         
         // Display results
         jobCardsContainer.innerHTML = '';
@@ -1247,6 +1302,11 @@ async function searchJobsFromAnalysis() {
         }
         
     } catch (error) {
+        // Stop showing tips on error
+        if (tipInterval) {
+            clearInterval(tipInterval);
+        }
+        
         jobCardsContainer.innerHTML = `
             <div class="error-message">
                 <p style="color:#ff4444;">Failed to load jobs. Please try again.</p>
@@ -1255,6 +1315,59 @@ async function searchJobsFromAnalysis() {
         `;
         console.error('JSearch API error:', error);
     }
+}
+
+// Loading tips for job search
+const jobSearchTips = [
+    "Did you know that tailoring your resume to match job descriptions can increase your chances of getting an interview by up to 60%?",
+    "Did you know that the best time to apply for jobs is on Tuesday mornings? Recruiters are most active then!",
+    "Did you know that using keywords from the job posting in your resume helps it pass through Applicant Tracking Systems (ATS)?",
+    "Did you know that networking accounts for about 85% of all job placements? Don't underestimate the power of connections!",
+    "Did you know that following up after an interview within 24-48 hours shows professionalism and keeps you top of mind?",
+    "Did you know that remote work opportunities have increased by 159% since 2020? The job market is evolving!",
+    "Did you know that having a professional LinkedIn profile can increase your chances of being contacted by recruiters by 71%?",
+    "Did you know that the average job search takes 3-6 months? Stay persistent and keep applying!",
+    "Did you know that customizing your cover letter for each application significantly improves your response rate?",
+    "Did you know that companies often post jobs internally first? Building relationships within companies can give you early access!",
+    "Did you know that soft skills like communication and teamwork are just as important as technical skills in today's job market?",
+    "Did you know that practicing common interview questions out loud can boost your confidence and performance?",
+    "Did you know that many companies use AI to screen resumes? Using clear formatting and relevant keywords is crucial!",
+    "Did you know that job seekers who apply within the first 48 hours of a posting are 3x more likely to get an interview?",
+    "Did you know that having a portfolio or GitHub profile can set you apart from other candidates in tech roles?"
+];
+
+// Start showing loading tips
+function startLoadingTips() {
+    const tipElement = document.getElementById('loadingTip');
+    if (!tipElement) return null;
+    
+    let currentTipIndex = 0;
+    
+    // Show first tip immediately
+    const tipText = tipElement.querySelector('.tip-text');
+    if (tipText) {
+        tipText.textContent = jobSearchTips[currentTipIndex];
+    }
+    
+    // Change tip every 4 seconds
+    const interval = setInterval(() => {
+        currentTipIndex = (currentTipIndex + 1) % jobSearchTips.length;
+        const tipText = tipElement.querySelector('.tip-text');
+        if (tipText) {
+            // Fade out
+            tipElement.style.opacity = '0';
+            tipElement.style.transform = 'translateY(-10px)';
+            
+            setTimeout(() => {
+                tipText.textContent = jobSearchTips[currentTipIndex];
+                // Fade in
+                tipElement.style.opacity = '1';
+                tipElement.style.transform = 'translateY(0)';
+            }, 300);
+        }
+    }, 7000);
+    
+    return interval;
 }
 
 // Close auth page when clicking outside
