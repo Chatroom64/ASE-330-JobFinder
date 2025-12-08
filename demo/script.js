@@ -34,11 +34,11 @@ function initializeForm() {
     const container = document.getElementById('jobCriteriaContainer');
     //for (let i = 0; i < 4; i++) {
         addJobCriteriaRow();
-    }
+}
 
 // Navigate to main page
 function goToMainPage() {
-    const mainPageSignedIn = document.getElementById('mainPageSignedIn');
+    const mainPage = document.getElementById('mainPage');
     const mainPageSignedOut = document.getElementById('mainPageSignedOut');
     const jobSearchPage = document.getElementById('jobSearchPage');
     const jobResultsPage = document.getElementById('jobResultsPage');
@@ -51,13 +51,13 @@ function goToMainPage() {
     resumeAnalysisPage.classList.add('hidden');
     authPage.classList.add('hidden');
     
-    // Show main page
+    // Show main page based on login status
     if (token){
-        mainPageSignedIn.classList.remove('hidden');
-        mainPageSignedOut.classList.add('hidden');
+        if (mainPage) mainPage.classList.remove('hidden');
+        if (mainPageSignedOut) mainPageSignedOut.classList.add('hidden');
     }else{
-        mainPageSignedIn.classList.add('hidden');
-        mainPageSignedOut.classList.remove('hidden');
+        if (mainPage) mainPage.classList.add('hidden');
+        if (mainPageSignedOut) mainPageSignedOut.classList.remove('hidden');
     }
     
     // Scroll to top
@@ -66,22 +66,37 @@ function goToMainPage() {
 
 // Show job search form page
 function showJobSearchForm() {
-    const mainPage = document.getElementById('mainPageSignedIn');
+    const mainPage = document.getElementById('mainPage');
+    const mainPageSignedOut = document.getElementById('mainPageSignedOut');
     const jobSearchPage = document.getElementById('jobSearchPage');
     
-    mainPage.classList.add('hidden');
-    jobSearchPage.classList.remove('hidden');
+    // Hide main pages
+    if (mainPage) mainPage.classList.add('hidden');
+    if (mainPageSignedOut) mainPageSignedOut.classList.add('hidden');
+    
+    // Show job search page
+    if (jobSearchPage) jobSearchPage.classList.remove('hidden');
+    
     // Scroll to top
     window.scrollTo(0, 0); 
 }
 
 // Cancel form and return to main page
 function cancelForm() {
-    const mainPage = document.getElementById('mainPageSignedIn');
+    const mainPage = document.getElementById('mainPage');
+    const mainPageSignedOut = document.getElementById('mainPageSignedOut');
     const jobSearchPage = document.getElementById('jobSearchPage');
     
-    jobSearchPage.classList.add('hidden');
-    mainPage.classList.remove('hidden');
+    if (jobSearchPage) jobSearchPage.classList.add('hidden');
+    
+    // Show appropriate main page based on login status
+    if (token) {
+        if (mainPage) mainPage.classList.remove('hidden');
+        if (mainPageSignedOut) mainPageSignedOut.classList.add('hidden');
+    } else {
+        if (mainPage) mainPage.classList.add('hidden');
+        if (mainPageSignedOut) mainPageSignedOut.classList.remove('hidden');
+    }
     
     // Reset form
     resetForm();
@@ -226,7 +241,7 @@ function generateMockJobs(count = 10) {
             salary: salary,
             matchReasons: matchReasons
         });
-    }    
+    }
     return jobs;
 }
 
@@ -367,11 +382,14 @@ function handleFormSubmit(event) {
     })
     .then(response => {
         console.log('Resume analyzed successfully:', response.data);
+        // Hide loading indicator immediately before displaying results
         hideLoadingIndicator();
+        // Then display the results
         displayAnalysisResults(response.data);
     })
     .catch(error => {
         console.error('Error analyzing resume:', error);
+        // Hide loading indicator on error
         hideLoadingIndicator();
         showError('Failed to analyze resume. Please try again.');
     });
@@ -471,8 +489,12 @@ function switchAuthTab(tab) {
     const signupTab = document.getElementById('signupTab');
     const loginFormContainer = document.getElementById('loginFormContainer');
     const signupFormContainer = document.getElementById('signupFormContainer');
-    signupFormContainer.style.maxHeight= "400px";
-    signupFormContainer.style.overflowY= "scroll";
+    
+    // Remove inline styles to use CSS classes instead
+    if (signupFormContainer) {
+        signupFormContainer.style.maxHeight = "";
+        signupFormContainer.style.overflowY = "";
+    }
 
     if (tab === 'login') {
         loginTab.classList.add('active');
@@ -538,6 +560,7 @@ async function handleSignup(event) {
     // Validate passwords match
     if (password !== confirmPassword) {
         alert('Passwords do not match. Please try again.');
+        // Don't reset form - keep user input
         return;
     }
     
@@ -551,10 +574,9 @@ async function handleSignup(event) {
         console.log(response.data.message); // "User created successfully"
         alert("Sign-up successful! You can now log in.");
 
-    } catch (err) {
-        console.error(err.response.data);
-        alert(err.response.data.error || "Sign-up failed");
-    }   
+        // Only reset form on success
+        const signupForm = document.getElementById('signupForm');
+        if (signupForm) signupForm.reset();
     
     // Switch to login tab
     switchAuthTab('login');
@@ -562,20 +584,27 @@ async function handleSignup(event) {
     // Pre-fill email in login form
     document.getElementById('loginEmail').value = email;
     
-    // For demo purposes, just log the success
-    //console.log(`Account created: ${name} (${email})`);
+    } catch (err) {
+        console.error(err.response?.data || err);
+        const errorMessage = err.response?.data?.error || "Sign-up failed. Please try again.";
+        alert(errorMessage);
+        // Don't reset form on error - keep user input so they can fix mistakes
+        return;
+    }
 }
 
 // Show resume analysis page
 function showResumeAnalysisPage() {
-    const mainPage = document.getElementById('mainPageSignedIn');
+    const mainPage = document.getElementById('mainPage');
+    const mainPageSignedOut = document.getElementById('mainPageSignedOut');
     const jobSearchPage = document.getElementById('jobSearchPage');
     const jobResultsPage = document.getElementById('jobResultsPage');
     const resumeAnalysisPage = document.getElementById('resumeAnalysisPage');
     const authPage = document.getElementById('authPage');
     
     // Hide all pages
-    mainPage.classList.add('hidden');
+    if (mainPage) mainPage.classList.add('hidden');
+    if (mainPageSignedOut) mainPageSignedOut.classList.add('hidden');
     jobSearchPage.classList.add('hidden');
     jobResultsPage.classList.add('hidden');
     authPage.classList.add('hidden');
@@ -599,161 +628,154 @@ function showLoadingIndicator() {
 // Hide loading indicator
 function hideLoadingIndicator() {
     const loadingIndicator = document.getElementById('loadingIndicator');
+    const analysisResults = document.getElementById('analysisResults');
     
-    loadingIndicator.classList.add('hidden');
+    if (loadingIndicator) {
+        loadingIndicator.style.display = 'none';
+        loadingIndicator.classList.add('hidden');
+    }
+    if (analysisResults) {
+        analysisResults.style.display = 'block';
+        analysisResults.classList.remove('hidden');
+    }
 }
 
-// Display analysis results
+// Display analysis results with editable fields
 function displayAnalysisResults(data) {
+    // Immediately hide loading indicator and show results container
+    // This must happen first, before any processing
+    const loadingIndicator = document.getElementById('loadingIndicator');
     const analysisResults = document.getElementById('analysisResults');
-    analysisResults.classList.remove('hidden');
     
-    // Parse the analysis data (assuming it comes from Gemini API)
-    // The structure may vary based on your API response
-    const analysis = data.remoteResponse;
+    if (loadingIndicator) {
+        loadingIndicator.style.display = 'none';
+        loadingIndicator.classList.add('hidden');
+    }
+    if (analysisResults) {
+        analysisResults.style.display = 'block';
+        analysisResults.classList.remove('hidden');
+    }
+    
+    // Parse the analysis data - try different possible response structures
+    let analysisText = null;
+    if (data.remoteResponse) {
+        analysisText = typeof data.remoteResponse === 'string' ? data.remoteResponse : data.remoteResponse.result || data.remoteResponse;
+    } else if (data.analysis) {
+        analysisText = typeof data.analysis === 'string' ? data.analysis : data.analysis.result || data.analysis;
+    } else if (data.text) {
+        analysisText = data.text;
+    } else if (data.result) {
+        analysisText = data.result;
+    } else {
+        analysisText = JSON.stringify(data);
+    }
+    
+    // Parse the text format: SKILLS_TECHNOLOGIES: ..., JOB_TITLES_ROLES: ..., INDUSTRY_DOMAINS: ...
+    const analysis = parseAnalysisText(analysisText);
     
     let html = '';
     
-    // Personal Information Section
-    if (analysis.personalInfo || analysis.name || analysis.email) {
+    // Personal Information Section (Editable) - Optional, only show if data exists
+    if (analysis.personalInfo && (analysis.personalInfo.name || analysis.personalInfo.email)) {
+        const personalInfo = analysis.personalInfo || {};
         html += `
             <div class="analysis-section">
                 <div class="section-header">
                     <span class="section-icon">👤</span>
                     <h3 class="section-title">Personal Information</h3>
                 </div>
-                <div class="info-grid">
-                    ${analysis.name ? `
-                        <div class="info-item">
-                            <span class="info-label">Name</span>
-                            <span class="info-value">${analysis.name}</span>
-                        </div>
-                    ` : ''}
-                    ${analysis.email ? `
-                        <div class="info-item">
-                            <span class="info-label">Email</span>
-                            <span class="info-value">${analysis.email}</span>
-                        </div>
-                    ` : ''}
-                    ${analysis.phone ? `
-                        <div class="info-item">
-                            <span class="info-label">Phone</span>
-                            <span class="info-value">${analysis.phone}</span>
-                        </div>
-                    ` : ''}
-                    ${analysis.location ? `
-                        <div class="info-item">
-                            <span class="info-label">Location</span>
-                            <span class="info-value">${analysis.location}</span>
-                        </div>
-                    ` : ''}
+                <div class="info-grid editable-grid">
+                    <div class="info-item editable-item">
+                        <label class="info-label">Name</label>
+                        <input type="text" class="editable-input" value="${escapeHtml(personalInfo.name || '')}" data-field="name" placeholder="Enter your name">
+                    </div>
+                    <div class="info-item editable-item">
+                        <label class="info-label">Email</label>
+                        <input type="email" class="editable-input" value="${escapeHtml(personalInfo.email || '')}" data-field="email" placeholder="Enter your email">
+                    </div>
+                    <div class="info-item editable-item">
+                        <label class="info-label">Phone</label>
+                        <input type="tel" class="editable-input" value="${escapeHtml(personalInfo.phone || '')}" data-field="phone" placeholder="Enter your phone">
+                    </div>
+                    <div class="info-item editable-item">
+                        <label class="info-label">Location</label>
+                        <input type="text" class="editable-input" value="${escapeHtml(personalInfo.location || '')}" data-field="location" placeholder="Enter your location">
+                    </div>
                 </div>
             </div>
         `;
     }
     
-    // Skills Section
-    if (analysis.skills && analysis.skills.length > 0) {
-        html += `
-            <div class="analysis-section">
-                <div class="section-header">
-                    <span class="section-icon">💼</span>
-                    <h3 class="section-title">Skills</h3>
-                </div>
-                <div class="skills-list">
-                    ${analysis.skills.map(skill => `
-                        <span class="skill-tag">${skill}</span>
-                    `).join('')}
-                </div>
+    // Skills Section (Editable)
+    const skills = analysis.skills || [];
+    html += `
+        <div class="analysis-section">
+            <div class="section-header">
+                <span class="section-icon">💼</span>
+                <h3 class="section-title">Skills & Technologies</h3>
+                <button class="add-skill-btn" onclick="addSkillTag()">+ Add Skill</button>
             </div>
-        `;
-    }
-    
-    // Experience Section
-    if (analysis.experience && analysis.experience.length > 0) {
-        html += `
-            <div class="analysis-section">
-                <div class="section-header">
-                    <span class="section-icon">💼</span>
-                    <h3 class="section-title">Work Experience</h3>
-                </div>
-                ${analysis.experience.map(exp => `
-                    <div class="experience-item">
-                        <div class="experience-header">
-                            <div>
-                                <div class="experience-title">${exp.title || exp.position || 'N/A'}</div>
-                                <div class="experience-company">${exp.company || exp.employer || 'N/A'}</div>
-                            </div>
-                            ${exp.period || exp.duration ? `
-                                <div class="experience-period">${exp.period || exp.duration}</div>
-                            ` : ''}
-                        </div>
-                        ${exp.description ? `
-                            <div class="experience-description">${exp.description}</div>
-                        ` : ''}
-                        ${exp.achievements && exp.achievements.length > 0 ? `
-                            <ul class="experience-achievements">
-                                ${exp.achievements.map(achievement => `
-                                    <li>${achievement}</li>
-                                `).join('')}
-                            </ul>
-                        ` : ''}
+            <div class="skills-list editable-skills" id="skillsList">
+                ${skills.map((skill, index) => `
+                    <div class="skill-tag-wrapper">
+                        <input type="text" class="skill-tag editable" value="${escapeHtml(skill)}" data-index="${index}">
+                        <button class="remove-skill-btn" onclick="removeSkillTag(this)">×</button>
                     </div>
                 `).join('')}
             </div>
-        `;
-    }
+        </div>
+    `;
     
-    // Education Section
-    if (analysis.education && analysis.education.length > 0) {
-        html += `
-            <div class="analysis-section">
-                <div class="section-header">
-                    <span class="section-icon">🎓</span>
-                    <h3 class="section-title">Education</h3>
-                </div>
-                ${analysis.education.map(edu => `
-                    <div class="experience-item">
-                        <div class="experience-header">
-                            <div>
-                                <div class="experience-title">${edu.degree || edu.qualification || 'N/A'}</div>
-                                <div class="experience-company">${edu.school || edu.institution || 'N/A'}</div>
-                            </div>
-                            ${edu.year || edu.period ? `
-                                <div class="experience-period">${edu.year || edu.period}</div>
-                            ` : ''}
-                        </div>
-                        ${edu.description ? `
-                            <div class="experience-description">${edu.description}</div>
-                        ` : ''}
+    // Job Titles & Roles Section (Editable)
+    const jobTitles = analysis.jobTitles || [];
+    html += `
+        <div class="analysis-section">
+            <div class="section-header">
+                <span class="section-icon">👔</span>
+                <h3 class="section-title">Job Titles & Roles</h3>
+                <button class="add-skill-btn" onclick="addJobTitleTag()">+ Add Title</button>
+            </div>
+            <div class="skills-list editable-skills" id="jobTitlesList">
+                ${jobTitles.map((title, index) => `
+                    <div class="skill-tag-wrapper">
+                        <input type="text" class="skill-tag editable" value="${escapeHtml(title)}" data-index="${index}">
+                        <button class="remove-skill-btn" onclick="removeSkillTag(this)">×</button>
                     </div>
                 `).join('')}
             </div>
-        `;
-    }
+        </div>
+    `;
     
-    // Summary Section (if available)
-    if (analysis.summary || analysis.overview) {
-        html += `
-            <div class="analysis-section">
-                <div class="section-header">
-                    <span class="section-icon">📝</span>
-                    <h3 class="section-title">Summary</h3>
-                </div>
-                <div class="section-content">${analysis.summary || analysis.overview}</div>
+    // Industry Domains Section (Editable)
+    const industries = analysis.industries || [];
+    html += `
+        <div class="analysis-section">
+            <div class="section-header">
+                <span class="section-icon">🏢</span>
+                <h3 class="section-title">Industry Domains</h3>
+                <button class="add-skill-btn" onclick="addIndustryTag()">+ Add Industry</button>
             </div>
-        `;
-    }
+            <div class="skills-list editable-skills" id="industriesList">
+                ${industries.map((industry, index) => `
+                    <div class="skill-tag-wrapper">
+                        <input type="text" class="skill-tag editable" value="${escapeHtml(industry)}" data-index="${index}">
+                        <button class="remove-skill-btn" onclick="removeSkillTag(this)">×</button>
+                    </div>
+                `).join('')}
+            </div>
+        </div>
+    `;
     
-    // If no structured data, display raw analysis text
-    if (!html && (analysis.text || analysis.analysisText || typeof analysis === 'string')) {
-        html = `
+    // If parsing failed or no structured data, show raw text as editable
+    if (!analysis.skills.length && !analysis.jobTitles.length && !analysis.industries.length) {
+        html += `
             <div class="analysis-section">
                 <div class="section-header">
                     <span class="section-icon">📄</span>
-                    <h3 class="section-title">Analysis Results</h3>
+                    <h3 class="section-title">Raw Analysis</h3>
                 </div>
-                <div class="section-content">${analysis.text || analysis.analysisText || analysis}</div>
+                <textarea class="editable-textarea full-textarea" placeholder="Edit your resume analysis" readonly>${escapeHtml(analysisText)}</textarea>
+                <p class="analysis-note">Note: The analysis could not be parsed into structured format. Please review the raw text above.</p>
             </div>
         `;
     }
@@ -762,6 +784,248 @@ function displayAnalysisResults(data) {
     
     // Store analysis data for later use
     window.currentAnalysisData = data;
+    window.editedAnalysisData = parseEditedData();
+}
+
+// Helper function to escape HTML
+function escapeHtml(text) {
+    if (!text) return '';
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+}
+
+// Parse edited data from the form
+function parseEditedData() {
+    const data = {
+        personalInfo: {},
+        skills: [],
+        jobTitles: [],
+        industries: [],
+        experience: [],
+        education: [],
+        summary: ''
+    };
+    
+    // Get personal info
+    const nameInput = document.querySelector('input[data-field="name"]');
+    const emailInput = document.querySelector('input[data-field="email"]');
+    const phoneInput = document.querySelector('input[data-field="phone"]');
+    const locationInput = document.querySelector('input[data-field="location"]');
+    
+    if (nameInput) data.personalInfo.name = nameInput.value;
+    if (emailInput) data.personalInfo.email = emailInput.value;
+    if (phoneInput) data.personalInfo.phone = phoneInput.value;
+    if (locationInput) data.personalInfo.location = locationInput.value;
+    
+    // Get skills
+    const skillInputs = document.querySelectorAll('#skillsList .skill-tag');
+    skillInputs.forEach(input => {
+        if (input.value.trim()) {
+            data.skills.push(input.value.trim());
+        }
+    });
+    
+    // Get job titles
+    const jobTitleInputs = document.querySelectorAll('#jobTitlesList .skill-tag');
+    jobTitleInputs.forEach(input => {
+        if (input.value.trim()) {
+            data.jobTitles.push(input.value.trim());
+        }
+    });
+    
+    // Get industries
+    const industryInputs = document.querySelectorAll('#industriesList .skill-tag');
+    industryInputs.forEach(input => {
+        if (input.value.trim()) {
+            data.industries.push(input.value.trim());
+        }
+    });
+    
+    // Get experience
+    const experienceItems = document.querySelectorAll('#experienceList .experience-item');
+    experienceItems.forEach(item => {
+        const title = item.querySelector('.experience-title-input')?.value || '';
+        const company = item.querySelector('.experience-company-input')?.value || '';
+        const period = item.querySelector('.experience-period-input')?.value || '';
+        const description = item.querySelector('.experience-description')?.value || '';
+        
+        if (title || company || description) {
+            data.experience.push({ title, company, period, description });
+        }
+    });
+    
+    // Get education
+    const educationItems = document.querySelectorAll('#educationList .experience-item');
+    educationItems.forEach(item => {
+        const degree = item.querySelector('.experience-title-input')?.value || '';
+        const school = item.querySelector('.experience-company-input')?.value || '';
+        const year = item.querySelector('.experience-period-input')?.value || '';
+        const description = item.querySelector('.experience-description')?.value || '';
+        
+        if (degree || school) {
+            data.education.push({ degree, school, year, description });
+        }
+    });
+    
+    // Get summary
+    const summaryTextarea = document.querySelector('.summary-textarea');
+    if (summaryTextarea) {
+        data.summary = summaryTextarea.value;
+    }
+    
+    return data;
+}
+
+// Add skill tag
+function addSkillTag() {
+    const skillsList = document.getElementById('skillsList');
+    if (!skillsList) return;
+    
+    const skillCount = skillsList.children.length;
+    const skillWrapper = document.createElement('div');
+    skillWrapper.className = 'skill-tag-wrapper';
+    skillWrapper.innerHTML = `
+        <input type="text" class="skill-tag editable" value="" data-index="${skillCount}" placeholder="Enter skill">
+        <button class="remove-skill-btn" onclick="removeSkillTag(this)">×</button>
+    `;
+    skillsList.appendChild(skillWrapper);
+    skillWrapper.querySelector('.skill-tag').focus();
+}
+
+// Remove skill tag
+function removeSkillTag(button) {
+    button.parentElement.remove();
+}
+
+// Add experience item
+function addExperienceItem() {
+    const experienceList = document.getElementById('experienceList');
+    if (!experienceList) return;
+    
+    const expCount = experienceList.children.length;
+    const expItem = document.createElement('div');
+    expItem.className = 'experience-item editable-item';
+    expItem.setAttribute('data-index', expCount);
+    expItem.innerHTML = `
+        <div class="experience-header">
+            <div class="experience-inputs">
+                <input type="text" class="editable-input experience-title-input" value="" placeholder="Job Title">
+                <input type="text" class="editable-input experience-company-input" value="" placeholder="Company">
+            </div>
+            <input type="text" class="editable-input experience-period-input" value="" placeholder="Period">
+        </div>
+        <textarea class="editable-textarea experience-description" placeholder="Job description"></textarea>
+        <button class="remove-item-btn" onclick="removeExperienceItem(this)">Remove</button>
+    `;
+    experienceList.appendChild(expItem);
+}
+
+// Remove experience item
+function removeExperienceItem(button) {
+    button.closest('.experience-item').remove();
+}
+
+// Add education item
+function addEducationItem() {
+    const educationList = document.getElementById('educationList');
+    if (!educationList) return;
+    
+    const eduCount = educationList.children.length;
+    const eduItem = document.createElement('div');
+    eduItem.className = 'experience-item editable-item';
+    eduItem.setAttribute('data-index', eduCount);
+    eduItem.innerHTML = `
+        <div class="experience-header">
+            <div class="experience-inputs">
+                <input type="text" class="editable-input experience-title-input" value="" placeholder="Degree">
+                <input type="text" class="editable-input experience-company-input" value="" placeholder="School">
+            </div>
+            <input type="text" class="editable-input experience-period-input" value="" placeholder="Year">
+        </div>
+        <textarea class="editable-textarea experience-description" placeholder="Additional details"></textarea>
+        <button class="remove-item-btn" onclick="removeEducationItem(this)">Remove</button>
+    `;
+    educationList.appendChild(eduItem);
+}
+
+// Remove education item
+function removeEducationItem(button) {
+    button.closest('.experience-item').remove();
+}
+
+// Parse analysis text from Gemini response
+function parseAnalysisText(text) {
+    const result = {
+        skills: [],
+        jobTitles: [],
+        industries: []
+    };
+    
+    if (!text || typeof text !== 'string') {
+        return result;
+    }
+    
+    // Parse SKILLS_TECHNOLOGIES
+    const skillsMatch = text.match(/SKILLS_TECHNOLOGIES:\s*(.+?)(?=JOB_TITLES_ROLES:|INDUSTRY_DOMAINS:|$)/is);
+    if (skillsMatch) {
+        result.skills = skillsMatch[1]
+            .split(',')
+            .map(s => s.trim())
+            .filter(s => s.length > 0);
+    }
+    
+    // Parse JOB_TITLES_ROLES
+    const jobTitlesMatch = text.match(/JOB_TITLES_ROLES:\s*(.+?)(?=INDUSTRY_DOMAINS:|SKILLS_TECHNOLOGIES:|$)/is);
+    if (jobTitlesMatch) {
+        result.jobTitles = jobTitlesMatch[1]
+            .split(',')
+            .map(s => s.trim())
+            .filter(s => s.length > 0);
+    }
+    
+    // Parse INDUSTRY_DOMAINS
+    const industriesMatch = text.match(/INDUSTRY_DOMAINS:\s*(.+?)(?=SKILLS_TECHNOLOGIES:|JOB_TITLES_ROLES:|$)/is);
+    if (industriesMatch) {
+        result.industries = industriesMatch[1]
+            .split(',')
+            .map(s => s.trim())
+            .filter(s => s.length > 0);
+    }
+    
+    return result;
+}
+
+// Add job title tag
+function addJobTitleTag() {
+    const jobTitlesList = document.getElementById('jobTitlesList');
+    if (!jobTitlesList) return;
+    
+    const count = jobTitlesList.children.length;
+    const wrapper = document.createElement('div');
+    wrapper.className = 'skill-tag-wrapper';
+    wrapper.innerHTML = `
+        <input type="text" class="skill-tag editable" value="" data-index="${count}" placeholder="Enter job title">
+        <button class="remove-skill-btn" onclick="removeSkillTag(this)">×</button>
+    `;
+    jobTitlesList.appendChild(wrapper);
+    wrapper.querySelector('.skill-tag').focus();
+}
+
+// Add industry tag
+function addIndustryTag() {
+    const industriesList = document.getElementById('industriesList');
+    if (!industriesList) return;
+    
+    const count = industriesList.children.length;
+    const wrapper = document.createElement('div');
+    wrapper.className = 'skill-tag-wrapper';
+    wrapper.innerHTML = `
+        <input type="text" class="skill-tag editable" value="" data-index="${count}" placeholder="Enter industry">
+        <button class="remove-skill-btn" onclick="removeSkillTag(this)">×</button>
+    `;
+    industriesList.appendChild(wrapper);
+    wrapper.querySelector('.skill-tag').focus();
 }
 
 // Show error message
@@ -790,9 +1054,8 @@ function goBackToForm() {
     window.scrollTo(0, 0);
 }
 
-// Search jobs from analysis
-// Search jobs from analysis
-function searchJobsFromAnalysis() {
+// Search jobs from analysis - search for each skill separately
+async function searchJobsFromAnalysis() {
     const resumeAnalysisPage = document.getElementById('resumeAnalysisPage');
     const jobResultsPage = document.getElementById('jobResultsPage');
     
@@ -800,92 +1063,173 @@ function searchJobsFromAnalysis() {
     jobResultsPage.classList.remove('hidden');
     window.scrollTo(0, 0);
 
-    let searchQuery = 'developer jobs'; 
-
-    if (window.currentAnalysisData && window.currentAnalysisData.remoteResponse) {
-        const analysisText = window.currentAnalysisData.remoteResponse;
-        
-        // 1. Extract Job Title/Roles
-        const rolesMatch = analysisText.match(/JOB_TITLES_ROLES: ([^\n]*)/);
-        let jobTitle = '';
-        if (rolesMatch && rolesMatch[1]) {
-            jobTitle = rolesMatch[1].split(',')[0].trim();
-        }
-
-        // 2. Extract Top Skill/Technology
-        const skillsMatch = analysisText.match(/SKILLS_TECHNOLOGIES: ([^\n]*)/);
-        let topSkill = '';
-        if (skillsMatch && skillsMatch[1]) {
-            topSkill = skillsMatch[1].split(',')[0].trim();
-        }
-
-        // 3. Query Construction Logic
-        if (jobTitle) {
-            searchQuery = `${jobTitle} ${topSkill} jobs`;
-        } else if (topSkill) {
-            searchQuery = `${topSkill} developer jobs`;
+    // Get edited analysis data or original data
+    const editedData = window.editedAnalysisData || parseEditedData();
+    const originalData = window.currentAnalysisData;
+    
+    // Parse skills from edited data or original analysis
+    let allSkills = [];
+    let jobTitles = [];
+    
+    if (editedData && editedData.skills && editedData.skills.length > 0) {
+        allSkills = editedData.skills;
+    } else if (originalData && originalData.remoteResponse) {
+        const analysisText = originalData.remoteResponse;
+        const parsed = parseAnalysisText(analysisText);
+        allSkills = parsed.skills || [];
+        jobTitles = parsed.jobTitles || [];
+    }
+    
+    // If no skills found, try to get from analysis text directly
+    if (allSkills.length === 0 && originalData && originalData.remoteResponse) {
+        const analysisText = originalData.remoteResponse;
+        const skillsMatch = analysisText.match(/SKILLS_TECHNOLOGIES:\s*(.+?)(?=JOB_TITLES_ROLES:|INDUSTRY_DOMAINS:|$)/is);
+        if (skillsMatch) {
+            allSkills = skillsMatch[1]
+                .split(',')
+                .map(s => s.trim())
+                .filter(s => s.length > 0);
         }
     }
     
-    console.log('Final Search Query:', searchQuery);
+    // If still no skills, use job titles as search terms
+    if (allSkills.length === 0 && jobTitles.length > 0) {
+        allSkills = jobTitles;
+    }
+    
+    // Fallback if no skills or job titles
+    if (allSkills.length === 0) {
+        allSkills = ['developer'];
+    }
+    
+    console.log('Searching jobs for skills:', allSkills);
 
-    // --- Call API ---
+    // --- Show loading state ---
     const jobCardsContainer = document.getElementById('jobCardsContainer');
-    jobCardsContainer.innerHTML = '<div class="loading-indicator"><div class="spinner"></div><p>Loading jobs...</p></div>';
+    jobCardsContainer.innerHTML = '<div class="loading-indicator"><div class="spinner"></div><p>Searching jobs for your skills...</p></div>';
     
     const loadMoreBtn = document.getElementById('loadMoreBtn');
     if (loadMoreBtn) loadMoreBtn.classList.add('hidden');
+    
+    const resultsCount = document.getElementById('resultsCount');
+    if (resultsCount) resultsCount.textContent = '0';
 
-    // Call backend endpoint to fetch jobs
-    axios.get('http://127.0.0.1:3000/api/search/jobs', {
-        params: {
-            query: searchQuery, 
-            page: 1,
-            num_pages: 1
-        }
-    })
-    .then(response => {
-        console.log('JSearch API response:', response.data);
+    // Search for each skill separately and combine results
+    const allJobs = [];
+    const jobIdSet = new Set(); // To avoid duplicates
+    
+    try {
+        // Search for each skill
+        const searchPromises = allSkills.map(skill => {
+            const searchQuery = `${skill} developer jobs`;
+            console.log(`Searching for: ${searchQuery}`);
+            
+            return axios.get('http://127.0.0.1:3000/api/search/jobs', {
+                params: {
+                    query: searchQuery,
+                    page: 1,
+                    num_pages: 1
+                }
+            })
+            .then(response => {
+                const jobs = response.data.data || [];
+                // Add skill information to each job and filter duplicates
+                return jobs.map(job => {
+                    const jobId = job.job_id || job.job_title + job.job_city;
+                    if (!jobIdSet.has(jobId)) {
+                        jobIdSet.add(jobId);
+                        job.matchedSkill = skill;
+                        return job;
+                    }
+                    return null;
+                }).filter(job => job !== null);
+            })
+            .catch(error => {
+                console.error(`Error searching for ${skill}:`, error);
+                return [];
+            });
+        });
         
-        // Extract jobs from response
-        const jobs = response.data.data || response.data || [];
+        // Wait for all searches to complete
+        const searchResults = await Promise.all(searchPromises);
         
+        // Combine all results
+        searchResults.forEach(jobs => {
+            allJobs.push(...jobs);
+        });
+        
+        console.log(`Found ${allJobs.length} total jobs from ${allSkills.length} skills`);
+        
+        // Display results
         jobCardsContainer.innerHTML = '';
         
-        if (jobs.length === 0) {
-            jobCardsContainer.innerHTML = '<p>No jobs found for your skills.</p>';
+        if (allJobs.length === 0) {
+            jobCardsContainer.innerHTML = `
+                <div class="no-jobs-message">
+                    <p>No jobs found for your skills: ${allSkills.join(', ')}</p>
+                    <p>Try editing your skills in the analysis results page.</p>
+                </div>
+            `;
         } else {
-            jobs.forEach(job => {
+            // Sort by relevance (jobs with matched skills first)
+            allJobs.sort((a, b) => {
+                // Prioritize jobs that match multiple skills
+                return (b.matchedSkill ? 1 : 0) - (a.matchedSkill ? 1 : 0);
+            });
+            
+            allJobs.forEach(job => {
                 const title = job.job_title || job.title || 'No Title';
-                const salary = job.job_min_salary ? `$${job.job_min_salary}` : (job.salary || 'N/A');
-                const location = job.job_city ? `${job.job_city}, ${job.job_country}` : (job.location || 'Remote');
-                const description = job.job_description ? job.job_description.substring(0, 150) + '...' : 'No description available.';
-                const applyLink = job.job_apply_link || job.url || '#';
+                const salary = job.job_min_salary && job.job_max_salary 
+                    ? `$${job.job_min_salary.toLocaleString()} - $${job.job_max_salary.toLocaleString()}`
+                    : job.job_min_salary 
+                    ? `$${job.job_min_salary.toLocaleString()}+`
+                    : job.salary || 'Salary not specified';
+                const location = job.job_city && job.job_country
+                    ? `${job.job_city}, ${job.job_country}`
+                    : job.job_city
+                    ? job.job_city
+                    : job.job_country
+                    ? job.job_country
+                    : job.location || 'Remote';
+                const description = job.job_description 
+                    ? job.job_description.substring(0, 200) + '...' 
+                    : job.job_highlights?.items?.join(' ')?.substring(0, 200) + '...'
+                    || 'No description available.';
+                const applyLink = job.job_apply_link || job.job_google_link || job.url || '#';
+                const company = job.employer_name || job.company_name || 'Company not specified';
+                const matchedSkill = job.matchedSkill || '';
 
                 const card = document.createElement('div');
                 card.className = 'job-card';
                 card.innerHTML = `
                     <div class="job-card-header">
                         <div>
-                            <h3 class="job-title">${title}</h3>
+                            <h3 class="job-title">${escapeHtml(title)}</h3>
+                            <div class="job-company">${escapeHtml(company)}</div>
                             <div class="job-meta">
                                 <div class="meta-item">
                                     <span class="meta-label">💰 Salary:</span>
-                                    <span class="meta-value">${salary}</span>
+                                    <span class="meta-value">${escapeHtml(salary)}</span>
                                 </div>
                                 <div class="meta-item">
                                     <span class="meta-label">📍 Location:</span>
-                                    <span class="meta-value">${location}</span>
+                                    <span class="meta-value">${escapeHtml(location)}</span>
                                 </div>
                             </div>
                         </div>
                     </div>
+                    ${matchedSkill ? `
+                        <div class="matched-skill-badge">
+                            <span class="badge-icon">🎯</span>
+                            Matched: <strong>${escapeHtml(matchedSkill)}</strong>
+                        </div>
+                    ` : ''}
                     <div class="match-section">
                         <h4 class="match-title">Job Description</h4>
-                        <div class="section-content">${description}</div>
+                        <div class="section-content">${escapeHtml(description)}</div>
                     </div>
                     <div class="job-card-footer">
-                        <a href="${applyLink}" target="_blank" class="apply-btn">Apply</a>
+                        <a href="${applyLink}" target="_blank" rel="noopener noreferrer" class="apply-btn">Apply</a>
                     </div>
                 `;
                 jobCardsContainer.appendChild(card);
@@ -893,13 +1237,24 @@ function searchJobsFromAnalysis() {
         }
         
         // Update results count
-        const resultsCount = document.getElementById('resultsCount');
-        if (resultsCount) resultsCount.textContent = jobs.length;
-    })
-    .catch(error => {
-        jobCardsContainer.innerHTML = '<p style="color:#ff4444;">Failed to load jobs. Please try again.</p>';
+        if (resultsCount) {
+            resultsCount.textContent = allJobs.length;
+        }
+        
+        // Show load more button if there are results
+        if (loadMoreBtn && allJobs.length > 0) {
+            loadMoreBtn.classList.remove('hidden');
+        }
+        
+    } catch (error) {
+        jobCardsContainer.innerHTML = `
+            <div class="error-message">
+                <p style="color:#ff4444;">Failed to load jobs. Please try again.</p>
+                <p style="color:#666; font-size:14px;">Error: ${error.message}</p>
+            </div>
+        `;
         console.error('JSearch API error:', error);
-    });
+    }
 }
 
 // Close auth page when clicking outside
@@ -919,4 +1274,5 @@ document.addEventListener('DOMContentLoaded', function() {
         form.addEventListener('submit', handleFormSubmit);
     }
 });
+
 
