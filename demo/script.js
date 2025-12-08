@@ -599,7 +599,7 @@ function showLoadingIndicator() {
 // Hide loading indicator
 function hideLoadingIndicator() {
     const loadingIndicator = document.getElementById('loadingIndicator');
-    
+    console.log("Loading Indicator hidden: ", loadingIndicator);
     loadingIndicator.classList.add('hidden');
 }
 

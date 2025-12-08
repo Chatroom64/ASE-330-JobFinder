@@ -8,12 +8,12 @@
 <body>
     <nav class="navbar">
         <div class="nav-container">
-            <div class="logo" style="cursor: pointer;">JobFinder</div>
+            <div class="logo" style="cursor: pointer;" onclick="takeHome()">JobFinder</div>
             <div class="nav-links">
                 <a href="about.html" class="nav-link">About</a>
-                <a href="about.html" class="nav-link">Contact</a>
+                <a href="#aboutPageContacts" class="nav-link">Contact</a>
             </div>
-            <a href="index.html" class="account-btn">Home</a>
+            <button class="account-btn" onclick="takeHome()">Home</button>
         </div>
     </nav>
 <main id="about-contact">
@@ -27,9 +27,9 @@
         <p class="hero-subtitle">
             JobFinder averages over X users each month, and we have processed Y resumes overall.
         </p>
-        <a href="index.html" class="account-btn">Get Started</a>
+        <button class="account-btn" onclick="takeHome()">Get Started</button>
     </div>
-    <div id="about-page-contacts" style="padding:20px">
+    <div id="aboutPageContacts" style="padding:20px">
         <h2 class="hero-title">Contact The Site Creators</h2>
         <div class="contact-cards-container" id="cardsContainer">
             
@@ -57,6 +57,9 @@
         }
         for(let i=0;i<names.length;i++){
             container.innerHTML+=generateContactCards(names[i], emails[i]);
+        }
+        function takeHome(){
+            window.location.href = "index.html"
         }
     </script>
 </main>
